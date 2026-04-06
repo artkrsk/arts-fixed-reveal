@@ -4,13 +4,17 @@ import type { IFixedRevealOptions } from "./interfaces/IFixedRevealOptions";
 import type { TTranslateYMode } from "./types/TTranslateYMode";
 
 /**
- * Scroll-driven fixed reveal effect. The main content wrapper scales down
- * via ScrollTrigger scrub, revealing the dark body/footer layer behind.
- * Footer content can optionally fade in and translate into place.
+ * Scroll-driven fixed reveal effect. The footer is positioned via CSS
+ * (sticky bottom) behind the wrapper. As the user scrolls past the content,
+ * the wrapper scales down revealing the footer underneath.
  *
- * All visual parameters (gap, opacity, translateY) are read from CSS custom
- * properties registered via CSS.registerProperty(), so Elementor's responsive
- * slider controls drive the values through CSS — no JS option passing needed.
+ * The "slideout footer" CSS pattern handles the positioning (zero jitter,
+ * GPU-composited). ScrollTrigger only drives the animations: wrapper scale,
+ * footer opacity, and optional custom translateY settle-in.
+ *
+ * All visual parameters are read from CSS custom properties registered
+ * via CSS.registerProperty(), so Elementor's responsive controls drive
+ * the values through CSS — no JS option passing needed.
  */
 export class ArtsFixedReveal {
   private readonly wrapperSelector: string;
@@ -36,6 +40,10 @@ export class ArtsFixedReveal {
       return;
     }
 
+    if (window.ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
+      return;
+    }
+
     const tl = window.gsap.timeline({
       scrollTrigger: {
         start: () =>
@@ -57,7 +65,7 @@ export class ArtsFixedReveal {
       0,
     );
 
-    this.addFooterAnimation(tl, footer);
+    this.addFooterEffects(tl, footer);
     this.timeline = tl;
   }
 
@@ -92,7 +100,7 @@ export class ArtsFixedReveal {
 
   /** Read a resolved CSS custom property value as a number */
   private getCSSVar(name: string): number {
-    const raw = getComputedStyle(document.documentElement).getPropertyValue(
+    const raw = getComputedStyle(document.body).getPropertyValue(
       name,
     );
     return parseFloat(raw) || 0;
@@ -109,62 +117,59 @@ export class ArtsFixedReveal {
     return (vw - 2 * gap) / vw;
   }
 
-  /** Add opacity and/or translateY tweens for the footer element */
-  private addFooterAnimation(
+  /** Add opacity and/or custom translateY tweens for the footer */
+  private addFooterEffects(
     tl: gsap.core.Timeline,
     footer: HTMLElement,
   ): void {
-    const hasOpacity = this.opacityEnabled;
-    const hasTranslateY = this.translateYMode !== "none";
+    this.addFooterOpacity(tl, footer);
+    this.addFooterCustomTranslateY(tl, footer);
+  }
 
-    if (!hasOpacity && !hasTranslateY) {
+  /** Fade footer from starting opacity to 1 */
+  private addFooterOpacity(
+    tl: gsap.core.Timeline,
+    footer: HTMLElement,
+  ): void {
+    if (!this.opacityEnabled) {
       return;
     }
 
-    if (window.ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
+    if (this.getCSSVar(CSS_VARS.opacityFrom) >= 1) {
       return;
     }
 
-    /**
-     * Custom offset mode: skip when footer is taller than viewport
-     * (small translateY + opacity fade looks bad on tall footers).
-     * Fixed mode: always allowed — parallax-scrolls through content.
-     */
-    if (
-      this.translateYMode === "custom" &&
-      hasOpacity &&
-      footer.offsetHeight > window.innerHeight
-    ) {
+    tl.fromTo(
+      footer,
+      { opacity: () => this.getCSSVar(CSS_VARS.opacityFrom) },
+      { opacity: 1, ease: "none", duration: 1 },
+      0,
+    );
+  }
+
+  /** Custom translateY settle-in (only in "custom" mode) */
+  private addFooterCustomTranslateY(
+    tl: gsap.core.Timeline,
+    footer: HTMLElement,
+  ): void {
+    if (this.translateYMode !== "custom") {
       return;
     }
 
-    const fromVars: gsap.TweenVars = {};
-    const toVars: gsap.TweenVars = { ease: "none", duration: 1 };
-    let hasEffect = false;
-
-    if (hasOpacity && this.getCSSVar(CSS_VARS.opacityFrom) < 1) {
-      fromVars.opacity = () => this.getCSSVar(CSS_VARS.opacityFrom);
-      toVars.opacity = 1;
-      hasEffect = true;
-    }
-
-    if (this.translateYMode === "fixed") {
-      fromVars.y = () => -footer.offsetHeight;
-      toVars.y = 0;
-      hasEffect = true;
-    } else if (
-      this.translateYMode === "custom" &&
-      this.getCSSVar(CSS_VARS.translateYFrom) !== 0
-    ) {
-      fromVars.y = () => this.getCSSVar(CSS_VARS.translateYFrom);
-      toVars.y = 0;
-      hasEffect = true;
-    }
-
-    if (!hasEffect) {
+    if (this.getCSSVar(CSS_VARS.translateYFrom) === 0) {
       return;
     }
 
-    tl.fromTo(footer, fromVars, toVars, 0);
+    /** Skip when footer is taller than viewport — small offset looks bad */
+    if (footer.offsetHeight > window.innerHeight) {
+      return;
+    }
+
+    tl.fromTo(
+      footer,
+      { y: () => this.getCSSVar(CSS_VARS.translateYFrom) },
+      { y: 0, ease: "none", duration: 1 },
+      0,
+    );
   }
 }

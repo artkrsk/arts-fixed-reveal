@@ -8,8 +8,8 @@ export interface IFixedRevealOptions {
   /** Fade footer from a starting opacity to 1 during reveal */
   opacityEnabled?: boolean;
   /**
-   * - `'fixed'` — footer appears pinned (translateY computed from footer height)
-   * - `'custom'` — user-defined offset via CSS variable
+   * - `'fixed'` — footer positioned via CSS sticky (no JS animation needed)
+   * - `'custom'` — user-defined translateY offset via CSS variable
    * - `'none'` — no vertical translation
    */
   translateYMode?: TTranslateYMode;

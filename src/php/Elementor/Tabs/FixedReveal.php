@@ -49,10 +49,13 @@ class FixedReveal extends BaseTab {
 		$this->add_control(
 			'fixed_reveal_enabled',
 			array(
-				'label'   => esc_html__( 'Enable Fixed Reveal', 'fixed-reveal-for-elementor' ),
-				'type'    => Controls_Manager::SWITCHER,
-				'default' => 'yes',
-				'save_db' => 'option',
+				'label'     => esc_html__( 'Enable Fixed Reveal', 'fixed-reveal-for-elementor' ),
+				'type'      => Controls_Manager::SWITCHER,
+				'default'   => 'yes',
+				'save_db'   => 'option',
+				'selectors' => array(
+					'{{WRAPPER}} #page-wrapper' => 'position: relative; z-index: 1;',
+				),
 			)
 		);
 
@@ -147,6 +150,22 @@ class FixedReveal extends BaseTab {
 				),
 				'condition' => self::CONDITION_FIXED_REVEAL_ENABLED,
 				'save_db'   => 'option',
+			)
+		);
+
+		/** Emit sticky CSS only when "fixed" mode is selected */
+		$this->add_control(
+			'fixed_reveal_translate_y_fixed_styles',
+			array(
+				'type'      => Controls_Manager::HIDDEN,
+				'default'   => 'fixed',
+				'selectors' => array(
+					'{{WRAPPER}} [data-elementor-type="footer"]' => 'position: sticky; bottom: 0; z-index: 0;',
+				),
+				'condition' => array_merge(
+					self::CONDITION_FIXED_REVEAL_ENABLED,
+					array( 'fixed_reveal_translate_y_mode' => 'fixed' )
+				),
 			)
 		);
 

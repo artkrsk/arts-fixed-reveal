@@ -11,9 +11,9 @@ window.ScrollTrigger = ScrollTrigger;
 const root = document.documentElement.style;
 root.setProperty("--arts-fixed-reveal-gap", "40px");
 root.setProperty("--arts-fixed-reveal-opacity-from", "0");
-root.setProperty("--arts-fixed-reveal-translate-y-from", "-30vh");
+root.setProperty("--arts-fixed-reveal-translate-y-from", "-20vh");
 
-const reveal = new ArtsFixedReveal();
+const reveal = new ArtsFixedReveal({ translateYMode: "custom" });
 reveal.init();
 
 window.artsFixedReveal = reveal;

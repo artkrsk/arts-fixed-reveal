@@ -23,7 +23,7 @@ class Frontend extends BaseManager {
 		wp_register_script(
 			$this->handle,
 			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.iife.js' ),
-			array( 'arts-gsap-loader' ),
+			array( 'gsap', 'scrolltrigger' ),
 			false,
 			array(
 				'in_footer' => true,

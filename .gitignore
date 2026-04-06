@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+*.sw?
+*.code-workspace
+
+# Build output
+/dist
+/src/php/libraries
+
+# Dependencies
+/node_modules
+/vendor
+pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs & cache
+*.log
+.cache
+.eslintcache
+coverage

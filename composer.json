@@ -1,0 +1,32 @@
+{
+  "name": "arts/fixed-reveal",
+  "type": "library",
+  "description": "Scroll-driven fixed reveal effect for Elementor",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Artem Semkin",
+      "email": "me@artemsemkin.com"
+    }
+  ],
+  "require": {
+    "php": ">=8.0",
+    "arts/elementor-extension": "@dev"
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension"
+    }
+  ],
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Arts\\FixedReveal\\": "src/php/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}

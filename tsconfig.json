@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+    "declarationDir": "./dist",
+    "strict": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "module": "es2022",
+    "target": "ES2022",
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowUmdGlobalAccess": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "types": [],
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo"
+  },
+  "include": ["src/**/*.ts", "dev/**/*.ts"],
+  "exclude": [
+    "node_modules/**/*",
+    "dist/**/*"
+  ]
+}

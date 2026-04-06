@@ -1,0 +1,41 @@
+{
+  "name": "@arts/fixed-reveal",
+  "author": "Artem Semkin",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "description": "Scroll-driven fixed reveal effect for Elementor",
+  "private": true,
+  "sideEffects": false,
+  "main": "./dist/index.iife.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./src/ts/index.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.iife.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=23.0.0"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2"
+  },
+  "scripts": {
+    "dev": "vite",
+    "dev:lib": "vite build --watch",
+    "build": "vite build",
+    "check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "sass-embedded": "^1.98.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.1"
+  }
+}

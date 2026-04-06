@@ -1,9 +1,10 @@
+import { elementorEditorLoaded } from "@arts/utilities";
 import { ArtsFixedReveal } from "./core/ArtsFixedReveal";
 export default ArtsFixedReveal;
 
 export type { ArtsFixedReveal };
-export type { IFixedRevealOptions } from "./core/interfaces/IFixedRevealOptions";
-export type { TTranslateYMode } from "./core/types/TTranslateYMode";
+export type { IFixedRevealOptions } from "./core/interfaces";
+export type { TTranslateYMode } from "./core/types";
 
 // Self-init from localized WordPress options
 const options = window.artsFixedRevealOptions;
@@ -14,4 +15,10 @@ if (options?.enabled) {
   });
   reveal.init();
   window.artsFixedReveal = reveal;
+
+  elementorEditorLoaded().then((isEditor) => {
+    if (isEditor) {
+      reveal.loadElementorSettingsHandler();
+    }
+  });
 }

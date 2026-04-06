@@ -1,7 +1,7 @@
-import { CSS_VARS } from "./constants/CSS_VARS";
-import { DEFAULTS } from "./constants/DEFAULTS";
-import type { IFixedRevealOptions } from "./interfaces/IFixedRevealOptions";
-import type { TTranslateYMode } from "./types/TTranslateYMode";
+import { CSS_VARS, DEFAULTS, ELEMENTOR_MAPPED_OPTIONS } from "./constants";
+import type { IFixedRevealOptions } from "./interfaces";
+import { LiveSettingsService } from "./services";
+import type { TTranslateYMode } from "./types";
 
 /**
  * Scroll-driven fixed reveal effect. The footer is positioned via CSS
@@ -22,6 +22,7 @@ export class ArtsFixedReveal {
   private opacityEnabled: boolean;
   private translateYMode: TTranslateYMode;
   private timeline: gsap.core.Timeline | null = null;
+  private settingsService: LiveSettingsService | null = null;
 
   constructor(options: IFixedRevealOptions = {}) {
     this.wrapperSelector = options.wrapperSelector ?? DEFAULTS.wrapperSelector;
@@ -76,6 +77,32 @@ export class ArtsFixedReveal {
     }
   }
 
+  /** Attach live settings listener for Elementor editor WYSIWYG */
+  loadElementorSettingsHandler(): void {
+    if (this.settingsService) {
+      return;
+    }
+
+    this.settingsService = new LiveSettingsService(
+      async () => this.onSettingsChange(),
+      ELEMENTOR_MAPPED_OPTIONS,
+    );
+  }
+
+  /** Detach live settings listener */
+  destroyElementorSettingsHandler(): void {
+    if (this.settingsService) {
+      this.settingsService.detach();
+      this.settingsService = null;
+    }
+  }
+
+  /** Full reinit on any setting change — CSS vars are re-read fresh */
+  private async onSettingsChange(): Promise<void> {
+    this.destroy();
+    this.init();
+  }
+
   /** Register typed CSS custom properties so getComputedStyle resolves any unit to a number */
   private registerProperties(): void {
     const props: Array<{ name: string; syntax: string; initial: string }> = [
@@ -100,9 +127,7 @@ export class ArtsFixedReveal {
 
   /** Read a resolved CSS custom property value as a number */
   private getCSSVar(name: string): number {
-    const raw = getComputedStyle(document.body).getPropertyValue(
-      name,
-    );
+    const raw = getComputedStyle(document.body).getPropertyValue(name);
     return parseFloat(raw) || 0;
   }
 
@@ -118,19 +143,13 @@ export class ArtsFixedReveal {
   }
 
   /** Add opacity and/or custom translateY tweens for the footer */
-  private addFooterEffects(
-    tl: gsap.core.Timeline,
-    footer: HTMLElement,
-  ): void {
+  private addFooterEffects(tl: gsap.core.Timeline, footer: HTMLElement): void {
     this.addFooterOpacity(tl, footer);
     this.addFooterCustomTranslateY(tl, footer);
   }
 
   /** Fade footer from starting opacity to 1 */
-  private addFooterOpacity(
-    tl: gsap.core.Timeline,
-    footer: HTMLElement,
-  ): void {
+  private addFooterOpacity(tl: gsap.core.Timeline, footer: HTMLElement): void {
     if (!this.opacityEnabled) {
       return;
     }

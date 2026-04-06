@@ -24,6 +24,7 @@
     "node": ">=23.0.0"
   },
   "dependencies": {
+    "@arts/utilities": "file:../ArtsUtilities",
     "gsap": "^3.14.2"
   },
   "scripts": {

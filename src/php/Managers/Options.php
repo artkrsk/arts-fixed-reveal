@@ -74,13 +74,16 @@ class Options extends BaseManager {
 
 			$new_selectors = array();
 			foreach ( $control_data['selectors'] as $selector => $css ) {
-				$new_selector                    = str_replace( '{{WRAPPER}}', '{{WRAPPER}} #page-wrapper', $selector );
+				$new_selector                   = str_replace( '{{WRAPPER}}', '{{WRAPPER}} #page-wrapper', $selector );
 				$new_selectors[ $new_selector ] = $css;
 			}
 
-			$element->update_control( $control_id, array(
-				'selectors' => $new_selectors,
-			) );
+			$element->update_control(
+				$control_id,
+				array(
+					'selectors' => $new_selectors,
+				)
+			);
 		}
 	}
 }

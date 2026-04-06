@@ -1,3 +1,4 @@
+/// <reference path="./global.d.ts" />
 import { elementorEditorLoaded } from "@arts/utilities";
 import { ArtsFixedReveal } from "./core/ArtsFixedReveal";
 export default ArtsFixedReveal;

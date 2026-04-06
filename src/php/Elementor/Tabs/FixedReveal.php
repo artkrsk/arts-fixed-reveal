@@ -26,7 +26,7 @@ class FixedReveal extends BaseTab {
 	);
 
 	public function get_title() {
-		return esc_html__( 'Fixed Reveal', 'fixed-reveal-for-elementor' );
+		return esc_html__( 'Footer Fixed Reveal', 'fixed-reveal-for-elementor' );
 	}
 
 	public function get_group() {
@@ -34,7 +34,7 @@ class FixedReveal extends BaseTab {
 	}
 
 	public function get_icon() {
-		return 'eicon-scroll';
+		return 'eicon-footer';
 	}
 
 	protected function register_tab_controls() {

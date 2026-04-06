@@ -41,6 +41,11 @@ export class ArtsFixedReveal {
       return;
     }
 
+    /** Skip when footer is inside the wrapper (e.g. editing a footer template in Elementor) */
+    if (wrapper.contains(footer)) {
+      return;
+    }
+
     if (window.ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
       return;
     }

@@ -54,7 +54,7 @@ class FixedReveal extends BaseTab {
 				'default'   => 'yes',
 				'save_db'   => 'option',
 				'selectors' => array(
-					'{{WRAPPER}} #page-wrapper' => 'position: relative; z-index: 1;',
+					// '{{WRAPPER}} #page-wrapper' => 'position: relative; z-index: 1;',
 				),
 			)
 		);

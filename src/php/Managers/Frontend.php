@@ -26,7 +26,7 @@ class Frontend extends BaseManager {
 			array( 'gsap', 'scrolltrigger' ),
 			false,
 			array(
-				'strategy'  => 'async',
+				'strategy'  => 'defer',
 				'in_footer' => true,
 			)
 		);

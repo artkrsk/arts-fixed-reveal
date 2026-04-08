@@ -46,8 +46,6 @@ export class ArtsFixedReveal {
       return;
     }
 
-    gsap.registerPlugin(ScrollTrigger);
-
     if (window.ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
       return;
     }

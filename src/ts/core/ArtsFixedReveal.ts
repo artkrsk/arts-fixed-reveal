@@ -3,6 +3,8 @@ import type { IFixedRevealOptions } from "./interfaces";
 import { LiveSettingsService } from "./services";
 import type { TTranslateYMode } from "./types";
 
+gsap.registerPlugin(ScrollTrigger);
+
 /**
  * Scroll-driven fixed reveal effect. The footer is positioned via CSS
  * (sticky bottom) behind the wrapper. As the user scrolls past the content,

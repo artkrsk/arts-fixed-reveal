@@ -27,7 +27,7 @@ class Frontend extends BaseManager {
 			false,
 			array(
 				'in_footer' => true,
-				'defer'     => true,
+				'strategy'  => 'defer',
 			)
 		);
 

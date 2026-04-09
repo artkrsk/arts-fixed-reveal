@@ -9,8 +9,6 @@ export type { TTranslateYMode } from "./core/types";
 // Self-init from localized WordPress options
 const options = window.artsFixedRevealOptions;
 if (options?.enabled) {
-  gsap.registerPlugin(ScrollTrigger);
-
   const reveal = new ArtsFixedReveal({
     opacityEnabled: options.opacityEnabled,
     translateYMode: options.translateYMode,

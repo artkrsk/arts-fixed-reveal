@@ -11,12 +11,23 @@
   ],
   "require": {
     "php": ">=8.0",
-    "arts/elementor-extension": "@dev"
+    "arts/elementor-extension": "@dev",
+    "arts/gsap-loader": "@dev"
   },
   "repositories": [
     {
       "type": "path",
-      "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension"
+      "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension",
+      "options": {
+        "symlink": false
+      }
+    },
+    {
+      "type": "path",
+      "url": "/Users/art/Projects/Framework/packages/ArtsGSAPLoader",
+      "options": {
+        "symlink": false
+      }
     }
   ],
   "minimum-stability": "dev",

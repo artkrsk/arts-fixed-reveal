@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Arts\ElementorExtension\Plugins\BasePlugin;
+use Arts\GSAPLoader\Plugin as GSAPLoaderPlugin;
 
 /**
  * @extends BasePlugin<ManagersContainer>
@@ -37,6 +38,7 @@ class Plugin extends BasePlugin {
 	}
 
 	protected function do_after_init_managers(): void {
+		GSAPLoaderPlugin::instance();
 		add_filter( 'arts/elementor_extension/tabs/tabs', array( $this->managers->options, 'get_elementor_site_settings_tabs' ) );
 		add_filter( 'arts/elementor_extension/plugin/config', array( $this->managers->extension, 'filter_plugin_config' ) );
 		add_filter( 'arts/elementor_extension/plugin/strings', array( $this->managers->extension, 'get_strings' ) );

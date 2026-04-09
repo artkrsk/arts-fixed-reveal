@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fc71acbe12e6b90649bdda2beaf84f19",
+    "content-hash": "3affe615e7dbeefff77ba7829d7d0e64",
     "packages": [
         {
             "name": "arts/base",
@@ -124,7 +124,7 @@
             ],
             "description": "WordPress library",
             "transport-options": {
-                "symlink": false,
+                "symlink": true,
                 "relative": false
             }
         },
@@ -194,7 +194,7 @@
             ],
             "description": "Automatically loads GSAP (GreenSock Animation Platform) scripts in your WordPress themes or plugins.",
             "transport-options": {
-                "symlink": false,
+                "symlink": true,
                 "relative": false
             }
         },

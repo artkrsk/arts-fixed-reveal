@@ -3,8 +3,6 @@ import type { IFixedRevealOptions } from "./interfaces";
 import { LiveSettingsService } from "./services";
 import type { TTranslateYMode } from "./types";
 
-gsap.registerPlugin(ScrollTrigger);
-
 /**
  * Scroll-driven fixed reveal effect. The footer is positioned via CSS
  * (sticky bottom) behind the wrapper. As the user scrolls past the content,
@@ -48,14 +46,13 @@ export class ArtsFixedReveal {
       return;
     }
 
-    if (window.ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
+    if (ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
       return;
     }
 
-    const tl = window.gsap.timeline({
+    const tl = gsap.timeline({
       scrollTrigger: {
-        start: () =>
-          window.ScrollTrigger.maxScroll(window) - footer.offsetHeight,
+        start: () => ScrollTrigger.maxScroll(window) - footer.offsetHeight,
         end: "max",
         scrub: true,
         invalidateOnRefresh: true,

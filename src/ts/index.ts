@@ -1,7 +1,6 @@
 /// <reference path="./global.d.ts" />
 import { elementorEditorLoaded } from "@arts/utilities";
 import { ArtsFixedReveal } from "./core/ArtsFixedReveal";
-export default ArtsFixedReveal;
 
 export type { ArtsFixedReveal };
 export type { IFixedRevealOptions } from "./core/interfaces";
@@ -10,6 +9,8 @@ export type { TTranslateYMode } from "./core/types";
 // Self-init from localized WordPress options
 const options = window.artsFixedRevealOptions;
 if (options?.enabled) {
+  gsap.registerPlugin(ScrollTrigger);
+
   const reveal = new ArtsFixedReveal({
     opacityEnabled: options.opacityEnabled,
     translateYMode: options.translateYMode,
@@ -23,3 +24,5 @@ if (options?.enabled) {
     }
   });
 }
+
+export default ArtsFixedReveal;

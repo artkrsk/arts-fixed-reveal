@@ -36,9 +36,9 @@
     "deps:update": "npx npm-check-updates -u && pnpm install"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "sass-embedded": "^1.99.0",
     "typescript": "^6.0.2",
-    "vite": "^8.0.7"
+    "vite": "^8.0.8"
   }
 }

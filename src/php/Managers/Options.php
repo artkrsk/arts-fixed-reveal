@@ -74,6 +74,11 @@ class Options extends BaseManager {
 
 			$new_selectors = array();
 			foreach ( $control_data['selectors'] as $selector => $css ) {
+				// Already retargeted (e.g. by Velum AJAX Transitions) — keep as-is
+				if ( strpos( $selector, '#page-wrapper' ) !== false ) {
+					$new_selectors[ $selector ] = $css;
+					continue;
+				}
 				$new_selector                   = str_replace( '{{WRAPPER}}', '{{WRAPPER}} #page-wrapper', $selector );
 				$new_selectors[ $new_selector ] = $css;
 			}

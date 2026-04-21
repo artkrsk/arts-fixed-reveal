@@ -113,8 +113,9 @@ export class ArtsFixedReveal {
       callbackResize: (_targets, entries) => {
         for (const entry of entries) {
           if (entry.target === this.footer) {
-            this.footerHeight =
-              entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+            /** Round to match offsetHeight semantics — ScrollTrigger.maxScroll() is an integer, subpixel mismatch breaks the eligibility check */
+            const raw = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+            this.footerHeight = Math.round(raw);
           }
         }
       },
@@ -138,7 +139,7 @@ export class ArtsFixedReveal {
     return true;
   }
 
-  /** Build or tear down the timeline based on current eligibility */
+  /** Build, tear down, or refresh the timeline based on current eligibility */
   private buildTimelineIfEligible(): void {
     const eligible = this.isEligible();
 
@@ -147,6 +148,14 @@ export class ArtsFixedReveal {
     } else if (!eligible && this.timeline) {
       this.timeline.kill();
       this.timeline = null;
+    } else if (eligible && this.timeline) {
+      /** Content/footer shifted while eligible — refresh so the start getter picks up the new cache value.
+       * Skip if a global refresh pass is already in flight; it'll run our getter anyway.
+       * isRefreshing is public on ScrollTrigger at runtime but missing from the typings. */
+      const isRefreshing = (ScrollTrigger as unknown as { isRefreshing: boolean }).isRefreshing;
+      if (!isRefreshing) {
+        this.timeline.scrollTrigger?.refresh();
+      }
     }
   }
 

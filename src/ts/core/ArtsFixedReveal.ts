@@ -46,6 +46,10 @@ export class ArtsFixedReveal {
       return;
     }
 
+    if (footer.offsetHeight <= 0) {
+      return;
+    }
+
     if (ScrollTrigger.maxScroll(window) < footer.offsetHeight) {
       return;
     }
@@ -183,14 +187,10 @@ export class ArtsFixedReveal {
       return;
     }
 
-    /** Skip when footer is taller than viewport — small offset looks bad */
-    if (footer.offsetHeight > window.innerHeight) {
-      return;
-    }
-
     tl.fromTo(
       footer,
-      { y: () => this.getCSSVar(CSS_VARS.translateYFrom) },
+      /** Skip offset when footer is taller than viewport — small offset looks bad at that size */
+      { y: () => footer.offsetHeight > window.innerHeight ? 0 : this.getCSSVar(CSS_VARS.translateYFrom) },
       { y: 0, ease: "none", duration: 1 },
       0,
     );

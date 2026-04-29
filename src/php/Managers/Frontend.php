@@ -47,37 +47,10 @@ class Frontend extends BaseManager {
 			return;
 		}
 
-		if ( ! $is_in_editor && ! $this->has_elementor_footer() ) {
+		if ( ! $is_in_editor && ! did_action( 'elementor/theme/after_do_footer' ) ) {
 			return;
 		}
 
 		wp_enqueue_script( $this->handle );
-	}
-
-	/** Check whether a footer document from Elementor Pro's theme builder matches the current page */
-	private function has_elementor_footer(): bool {
-		if ( ! class_exists( '\ElementorPro\Plugin' ) ) {
-			return false;
-		}
-
-		$pro = \ElementorPro\Plugin::instance();
-
-		if ( ! is_object( $pro ) || ! isset( $pro->modules_manager ) ) {
-			return false;
-		}
-
-		$theme_builder = $pro->modules_manager->get_modules( 'theme-builder' );
-
-		if ( ! is_object( $theme_builder ) || ! method_exists( $theme_builder, 'get_conditions_manager' ) ) {
-			return false;
-		}
-
-		$conditions = $theme_builder->get_conditions_manager();
-
-		if ( ! is_object( $conditions ) || ! method_exists( $conditions, 'get_documents_for_location' ) ) {
-			return false;
-		}
-
-		return ! empty( $conditions->get_documents_for_location( 'footer' ) );
 	}
 }

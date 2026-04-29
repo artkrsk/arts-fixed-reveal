@@ -46,7 +46,7 @@ class Plugin extends BasePlugin {
 
 	protected function add_actions(): void {
 		add_action( 'wp_enqueue_scripts', array( $this->managers->frontend, 'register' ) );
-		add_action( 'wp_enqueue_scripts', array( $this->managers->frontend, 'enqueue' ) );
+		add_action( 'wp_footer', array( $this->managers->frontend, 'enqueue' ), 1 );
 		add_action( 'elementor/element/before_section_end', array( $this->managers->options, 'retarget_background_controls' ), 10, 3 );
 	}
 }

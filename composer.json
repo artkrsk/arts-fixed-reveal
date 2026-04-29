@@ -12,7 +12,8 @@
   "require": {
     "php": ">=8.0",
     "arts/elementor-extension": "@dev",
-    "arts/gsap-loader": "@dev"
+    "arts/gsap-loader": "@dev",
+    "arts/utilities": "@dev"
   },
   "repositories": [
     {
@@ -25,6 +26,13 @@
     {
       "type": "path",
       "url": "/Users/art/Projects/Framework/packages/ArtsGSAPLoader",
+      "options": {
+        "symlink": true
+      }
+    },
+    {
+      "type": "path",
+      "url": "/Users/art/Projects/Framework/packages/ArtsUtilities",
       "options": {
         "symlink": true
       }

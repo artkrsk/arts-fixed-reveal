@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3affe615e7dbeefff77ba7829d7d0e64",
+    "content-hash": "e26c20ff150f7b1eae5c1347270888c8",
     "packages": [
         {
             "name": "arts/base",
@@ -62,7 +62,7 @@
             "dist": {
                 "type": "path",
                 "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension",
-                "reference": "d6deeabede313f94a89bdffecbb9d379ff3148d3"
+                "reference": "c7a0c045fd11bf406526aa6d6e0e7cc9fca7ccc8"
             },
             "require": {
                 "arts/base": "@dev",
@@ -201,16 +201,10 @@
         {
             "name": "arts/utilities",
             "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/artkrsk/arts-utilities.git",
-                "reference": "f6835543dfb8c17786dc51c28728dcef661fc58c"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/artkrsk/arts-utilities/zipball/f6835543dfb8c17786dc51c28728dcef661fc58c",
-                "reference": "f6835543dfb8c17786dc51c28728dcef661fc58c",
-                "shasum": ""
+                "type": "path",
+                "url": "/Users/art/Projects/Framework/packages/ArtsUtilities",
+                "reference": "814534a5faf0315246a41f4192b89590226b83aa"
             },
             "require": {
                 "php": ">=8.0"
@@ -227,14 +221,36 @@
                 "szepeviktor/phpstan-wordpress": "^2.0",
                 "wp-coding-standards/wpcs": "^3.0"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
                     "Arts\\Utilities\\": "src/php/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "check": [
+                    "@phpcs",
+                    "@phpstan"
+                ],
+                "fix": [
+                    "@phpcbf"
+                ],
+                "normalize": [
+                    "composer-normalize"
+                ],
+                "phpcbf": [
+                    "phpcbf --standard=phpcs.xml"
+                ],
+                "phpcs": [
+                    "phpcs --standard=phpcs.xml"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=2G"
+                ],
+                "phpstan:baseline": [
+                    "phpstan analyse --memory-limit=1G --generate-baseline"
+                ]
+            },
             "license": [
                 "GPL-3.0-or-later"
             ],
@@ -245,11 +261,10 @@
                 }
             ],
             "description": "A comprehensive collection of utility methods for WordPress theme and plugin development, with a focus on Elementor integration.",
-            "support": {
-                "issues": "https://github.com/artkrsk/arts-utilities/issues",
-                "source": "https://github.com/artkrsk/arts-utilities/tree/master"
-            },
-            "time": "2026-04-10T04:50:26+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": false
+            }
         }
     ],
     "packages-dev": [],
@@ -257,7 +272,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "arts/elementor-extension": 20,
-        "arts/gsap-loader": 20
+        "arts/gsap-loader": 20,
+        "arts/utilities": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,

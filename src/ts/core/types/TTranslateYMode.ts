@@ -1,1 +1,1 @@
-export type TTranslateYMode = "none" | "custom" | "fixed";
+export type TTranslateYMode = 'none' | 'custom' | 'fixed'

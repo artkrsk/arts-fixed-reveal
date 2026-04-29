@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@arts/utilities": "file:../ArtsUtilities",
-    "gsap": "^3.14.2"
+    "gsap": "^3.15.0"
   },
   "scripts": {
     "dev": "vite",
@@ -36,9 +36,10 @@
     "deps:update": "npx npm-check-updates -u && pnpm install"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.13",
     "@types/node": "^25.6.0",
     "sass-embedded": "^1.99.0",
-    "typescript": "^6.0.2",
-    "vite": "^8.0.8"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
   }
 }

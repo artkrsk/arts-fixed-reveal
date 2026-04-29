@@ -1,1 +1,1 @@
-export type { IFixedRevealOptions } from "./IFixedRevealOptions";
+export type { IFixedRevealOptions } from './IFixedRevealOptions'

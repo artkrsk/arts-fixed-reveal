@@ -4,7 +4,7 @@
  * to a concrete number, which JS reads via getComputedStyle.
  */
 export const CSS_VARS = {
-  gap: "--arts-fixed-reveal-gap",
-  opacityFrom: "--arts-fixed-reveal-opacity-from",
-  translateYFrom: "--arts-fixed-reveal-translate-y-from",
-} as const;
+  gap: '--arts-fixed-reveal-gap',
+  opacityFrom: '--arts-fixed-reveal-opacity-from',
+  translateYFrom: '--arts-fixed-reveal-translate-y-from',
+} as const

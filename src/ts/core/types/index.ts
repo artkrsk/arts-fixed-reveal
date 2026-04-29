@@ -1,1 +1,1 @@
-export type { TTranslateYMode } from "./TTranslateYMode";
+export type { TTranslateYMode } from './TTranslateYMode'

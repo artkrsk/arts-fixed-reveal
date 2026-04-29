@@ -1,1 +1,1 @@
-export { LiveSettingsService } from "./LiveSettingsService";
+export { LiveSettingsService } from './LiveSettingsService'

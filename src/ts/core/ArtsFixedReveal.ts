@@ -171,6 +171,23 @@ export class ArtsFixedReveal {
         end: 'max',
         scrub: true,
         invalidateOnRefresh: true,
+        // Refresh LAST in the trigger queue. Our `start` getter reads
+        // `ScrollTrigger.maxScroll(window)`, which depends on whether
+        // other triggers' pinSpacing elements are currently in the DOM.
+        // Default (priority 0) puts us in DOM order; a sibling pin
+        // refreshing later than us would leave us with a stale `start`
+        // computed against the un-pinned page height, then the wrapper
+        // renders at an interpolated scale even at scrollY=0.
+        //
+        // GSAP sorts by `refreshPriority * -1e6` ascending — negative
+        // values land at the end of the queue. Magnitude doesn't matter
+        // beyond sign; `-999` mirrors the framework convention already
+        // used in `ArtsHeader Sticky.ts:210`. Anything more negative
+        // (e.g. ScrollSmoother's `-9999`) could refresh after us; the
+        // current ordering puts both global-geometry triggers
+        // (ArtsHeader + ArtsFixedReveal) after consumer pins, which is
+        // the only constraint we care about.
+        refreshPriority: -999,
       },
     })
 

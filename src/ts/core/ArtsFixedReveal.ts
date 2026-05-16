@@ -1,5 +1,5 @@
 import { debounce, Resize } from '@arts/utilities'
-import { CSS_VARS, DEFAULTS, ELEMENTOR_MAPPED_OPTIONS } from './constants'
+import { CSS_VARS, DEFAULTS, ELEMENTOR_MAPPED_OPTIONS, OPACITY_FLOOR } from './constants'
 import type { IFixedRevealOptions } from './interfaces'
 import { LiveSettingsService } from './services'
 import type { TTranslateYMode } from './types'
@@ -211,9 +211,13 @@ export class ArtsFixedReveal {
     }
   }
 
-  /** Read a resolved CSS custom property value as a number */
-  private getCSSVar(name: string): number {
-    const raw = getComputedStyle(document.body).getPropertyValue(name)
+  /** Read a resolved CSS custom property value as a number from a given
+   *  element (default: `document.body`). CSS variables inherit DOWN the
+   *  tree only, so per-instance overrides set on the footer (or the
+   *  wrapper) are invisible when read from `body`. Callers that want
+   *  instance-scoped values must pass the relevant element. */
+  private getCSSVar(name: string, el: HTMLElement = document.body): number {
+    const raw = getComputedStyle(el).getPropertyValue(name)
     return parseFloat(raw) || 0
   }
 
@@ -234,31 +238,37 @@ export class ArtsFixedReveal {
     this.addFooterCustomTranslateY(tl, footer)
   }
 
-  /** Fade footer from starting opacity to 1 */
+  /** Fade footer from starting opacity to 1. Reads the `opacityFrom` CSS
+   *  var from the footer element itself so per-instance overrides — e.g.
+   *  `[data-elementor-type="footer"]:has(.heavy-widget) { --…-opacity-from: 1 }`
+   *  — correctly skip the tween. Reading from `body` would miss any var
+   *  declared deeper in the tree (CSS variables don't propagate upward). */
   private addFooterOpacity(tl: gsap.core.Timeline, footer: HTMLElement): void {
     if (!this.opacityEnabled) {
       return
     }
 
-    if (this.getCSSVar(CSS_VARS.opacityFrom) >= 1) {
+    if (this.getCSSVar(CSS_VARS.opacityFrom, footer) >= 1) {
       return
     }
 
     tl.fromTo(
       footer,
-      { opacity: () => this.getCSSVar(CSS_VARS.opacityFrom) },
+      { opacity: () => Math.max(OPACITY_FLOOR, this.getCSSVar(CSS_VARS.opacityFrom, footer)) },
       { opacity: 1, ease: 'none', duration: 1 },
       0,
     )
   }
 
-  /** Custom translateY settle-in (only in "custom" mode) */
+  /** Custom translateY settle-in (only in "custom" mode). Reads from
+   *  the footer for the same reason `addFooterOpacity` does — per-instance
+   *  overrides set deeper in the tree must be visible. */
   private addFooterCustomTranslateY(tl: gsap.core.Timeline, footer: HTMLElement): void {
     if (this.translateYMode !== 'custom') {
       return
     }
 
-    if (this.getCSSVar(CSS_VARS.translateYFrom) === 0) {
+    if (this.getCSSVar(CSS_VARS.translateYFrom, footer) === 0) {
       return
     }
 
@@ -267,7 +277,9 @@ export class ArtsFixedReveal {
       /** Skip offset when footer is taller than viewport — small offset looks bad at that size */
       {
         y: () =>
-          this.footerHeight > window.innerHeight ? 0 : this.getCSSVar(CSS_VARS.translateYFrom),
+          this.footerHeight > window.innerHeight
+            ? 0
+            : this.getCSSVar(CSS_VARS.translateYFrom, footer),
       },
       { y: 0, ease: 'none', duration: 1 },
       0,

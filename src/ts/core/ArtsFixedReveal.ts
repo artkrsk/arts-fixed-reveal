@@ -180,13 +180,13 @@ export class ArtsFixedReveal {
         // renders at an interpolated scale even at scrollY=0.
         //
         // GSAP sorts by `refreshPriority * -1e6` ascending — negative
-        // values land at the end of the queue. Magnitude doesn't matter
-        // beyond sign; `-999` mirrors the framework convention already
-        // used in `ArtsHeader Sticky.ts:210`. Anything more negative
-        // (e.g. ScrollSmoother's `-9999`) could refresh after us; the
-        // current ordering puts both global-geometry triggers
-        // (ArtsHeader + ArtsFixedReveal) after consumer pins, which is
-        // the only constraint we care about.
+        // values land at the end of the queue. It's a full numeric sort,
+        // but any negative value meets our one constraint: refresh after
+        // the priority-0 consumer pins. `-999` mirrors the framework
+        // convention already used in `ArtsHeader Sticky.ts:210`. Anything
+        // more negative (e.g. ScrollSmoother's `-9999`) could refresh
+        // after us — harmless, since both global-geometry triggers
+        // (ArtsHeader + ArtsFixedReveal) still land after consumer pins.
         refreshPriority: -999,
       },
     })

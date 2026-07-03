@@ -16,7 +16,7 @@ Three CSS layers, no custom color controls:
 
 ## CSS Variable Architecture
 
-All visual parameters are CSS custom properties registered via `CSS.registerProperty()`. Elementor's responsive slider controls set the values through CSS selectors. JS reads resolved pixel values from `document.body` via `getComputedStyle`.
+All visual parameters are CSS custom properties registered via `CSS.registerProperty()`. Elementor's responsive slider controls set the values through CSS selectors. JS reads resolved values via `getComputedStyle`: the gap from `document.body`, but the opacity/translateY vars from the **footer element** — so per-instance overrides declared deeper in the tree are honored (CSS vars inherit downward only).
 
 | Variable                               | Syntax     | Initial | Purpose                     |
 | -------------------------------------- | ---------- | ------- | --------------------------- |
@@ -39,6 +39,7 @@ Uses absolute scroll positions to avoid trigger-element shift issues:
 - `start`: `maxScroll - footerHeight` (functional, recalculated on refresh)
 - `end`: `"max"`
 - Single timeline with wrapper scale + optional footer opacity/translateY
+- Refreshes LAST (`refreshPriority: -999`) so `start` is computed after consumer pins settle — otherwise it reads an un-pinned page height and the wrapper renders pre-scaled at scrollY=0
 
 This approach is immune to CSS transforms or sticky positioning on the footer affecting trigger calculations.
 
@@ -54,10 +55,11 @@ Vite library mode. GSAP externalized (runtime global via ArtsGSAPLoader). Output
 pnpm dev      # Dev playground with theme-like fixture
 pnpm dev:lib  # Watch + copy IIFE for Composer consumers
 pnpm build    # One-shot build
+pnpm check    # Type-check (tsc --noEmit)
 ```
 
 ## Edge Cases
 
-- **Footer taller than viewport**: "custom" mode skips footer animation (looks bad). "fixed" mode works (parallax through content).
+- **Footer taller than viewport**: "custom" mode skips the translateY offset (looks bad at that size); opacity still fades. "fixed" mode works (parallax through content).
 - **Short pages** (`maxScroll < footerHeight`): entire effect skipped.
 - **Elementor editor**: always loads script for live toggle preview.

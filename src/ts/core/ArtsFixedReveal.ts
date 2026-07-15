@@ -168,7 +168,16 @@ export class ArtsFixedReveal {
     const tl = gsap.timeline({
       scrollTrigger: {
         start: () => ScrollTrigger.maxScroll(window) - this.footerHeight,
-        end: 'max',
+        // End = start + reveal DISTANCE. Distance defaults to footerHeight
+        // (→ end = maxScroll = the old `'max'`, unchanged for normal footers),
+        // but a footer can shrink it via `--arts-fixed-reveal-height` when part
+        // of its height is scroll runway rather than revealable content (e.g. a
+        // `position: sticky` scene sitting at the footer's top with a taller
+        // track below it). `start` stays on footerHeight — the reveal still
+        // BEGINS when the footer first enters — only the DURATION shortens, so
+        // the scale-down completes as the content lands instead of continuing
+        // to animate an already-offscreen wrapper across the runway.
+        end: () => ScrollTrigger.maxScroll(window) - this.footerHeight + this.getRevealHeight(),
         scrub: true,
         invalidateOnRefresh: true,
         // Refresh LAST in the trigger queue. Our `start` getter reads
@@ -212,6 +221,8 @@ export class ArtsFixedReveal {
       { name: CSS_VARS.gap, syntax: '<length>', initial: '0px' },
       { name: CSS_VARS.opacityFrom, syntax: '<number>', initial: '1' },
       { name: CSS_VARS.translateYFrom, syntax: '<length>', initial: '0px' },
+      // `0px` initial = "unset" — `getRevealHeight` falls back to footerHeight.
+      { name: CSS_VARS.height, syntax: '<length>', initial: '0px' },
     ]
 
     for (const { name, syntax, initial } of props) {
@@ -236,6 +247,16 @@ export class ArtsFixedReveal {
   private getCSSVar(name: string, el: HTMLElement = document.body): number {
     const raw = getComputedStyle(el).getPropertyValue(name)
     return parseFloat(raw) || 0
+  }
+
+  /** Reveal distance in scroll px — the `--arts-fixed-reveal-height` override
+   *  read from the footer, or the measured footer height when unset (`0`). */
+  private getRevealHeight(): number {
+    if (!this.footer) {
+      return this.footerHeight
+    }
+    const override = this.getCSSVar(CSS_VARS.height, this.footer)
+    return override > 0 ? override : this.footerHeight
   }
 
   /** Compute scale factor from the gap CSS variable and viewport width */

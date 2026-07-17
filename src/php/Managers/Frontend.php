@@ -23,7 +23,7 @@ class Frontend extends BaseManager {
 		wp_register_script(
 			$this->handle,
 			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.iife.js' ),
-			array( 'gsap', 'scrolltrigger' ),
+			array( 'scroll-timeline-polyfill' ),
 			false,
 			array(
 				'in_footer' => true,
@@ -32,6 +32,13 @@ class Frontend extends BaseManager {
 		);
 
 		wp_localize_script( $this->handle, 'artsFixedRevealOptions', $options );
+
+		wp_register_style(
+			$this->handle,
+			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.css' ),
+			array(),
+			false
+		);
 	}
 
 	public function enqueue(): void {
@@ -52,5 +59,6 @@ class Frontend extends BaseManager {
 		}
 
 		wp_enqueue_script( $this->handle );
+		wp_enqueue_style( $this->handle );
 	}
 }

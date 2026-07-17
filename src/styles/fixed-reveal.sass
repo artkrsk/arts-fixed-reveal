@@ -1,0 +1,53 @@
+// Native scroll-driven fixed reveal — the CSS side of the v2 architecture.
+//
+// The theme wraps the footer output in a STATIC in-flow runway div. A
+// sticky footer keeps its in-flow slot, so the runway's layout box equals
+// the footer's document slot — a stable view-timeline subject (a sticky
+// SUBJECT would distort ranges). `animation-range: entry` (length =
+// min(subject height, viewport)) reproduces the reveal distance for both
+// shipped shapes with zero configuration: normal footers reveal over their
+// own height; a footer taller than the viewport (e.g. one carrying a
+// sticky scene + scroll runway) reveals over exactly one viewport.
+//
+// Engine-tier rules (spike-verified): bindings are UNCONDITIONAL longhands
+// (never inside media queries; `animation: … auto …` shorthand is dropped
+// wholesale by no-SDA browsers, while longhands degrade to the benign
+// natural rest state), `linear` timing is load-bearing (1:1 attachment to
+// scroll), and all values flow through the `--arts-fixed-reveal-*` custom
+// properties emitted by the Elementor Site Settings controls — a disabled
+// control simply never emits its var and the fallback makes the keyframe
+// a no-op. The wrapper's scale rides a WAAPI ViewTimeline island in
+// ArtsFixedReveal.ts (the wrapper is a DOM SIBLING of the runway — no
+// ancestor timeline lookup, and `timeline-scope` is polyfill-hostile).
+
+.arts-fixed-reveal__runway
+	view-timeline: --arts-fixed-reveal block
+
+	> [data-elementor-type="footer"]
+		animation-name: arts-fixed-reveal-opacity, arts-fixed-reveal-translate-y
+		animation-duration: auto, auto
+		animation-timing-function: linear, linear
+		animation-fill-mode: both, both
+		animation-timeline: --arts-fixed-reveal, --arts-fixed-reveal
+		animation-range: entry, entry
+
+	// Parity with the v1 guard: skip the translateY settle-in when the
+	// footer is taller than the viewport (a small offset reads badly at
+	// that size). The island toggles the class from its resize path —
+	// measurement lives where measurement already exists.
+	&.is-taller-than-viewport > [data-elementor-type="footer"]
+		--arts-fixed-reveal-translate-y-from: 0px
+
+// Floor mirrors the v1 OPACITY_FLOOR: never start fully transparent so
+// the footer stays paintable/compositable from the first frame.
+@keyframes arts-fixed-reveal-opacity
+	from
+		opacity: max(0.01, var(--arts-fixed-reveal-opacity-from, 1))
+	to
+		opacity: 1
+
+@keyframes arts-fixed-reveal-translate-y
+	from
+		translate: 0 var(--arts-fixed-reveal-translate-y-from, 0px)
+	to
+		translate: 0 0

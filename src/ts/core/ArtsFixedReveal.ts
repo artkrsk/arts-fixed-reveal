@@ -1,42 +1,58 @@
 import { debounce, Resize } from '@arts/utilities'
-import { CSS_VARS, DEFAULTS, ELEMENTOR_MAPPED_OPTIONS, OPACITY_FLOOR } from './constants'
+import { CSS_VARS, DEFAULTS } from './constants'
 import type { IFixedRevealOptions } from './interfaces'
-import { LiveSettingsService } from './services'
-import type { TTranslateYMode } from './types'
+
+interface IViewTimelineCtor {
+  new (options: { subject: Element }): AnimationTimeline
+}
+
+const RUNWAY_CLASS = 'arts-fixed-reveal__runway'
+const TALLER_CLASS = 'is-taller-than-viewport'
 
 /**
- * Scroll-driven fixed reveal effect. The footer is positioned via CSS
- * (sticky bottom) behind the wrapper. As the user scrolls past the content,
- * the wrapper scales down revealing the footer underneath.
+ * Scroll-driven fixed reveal — the JS island of the v2 architecture.
  *
- * The "slideout footer" CSS pattern handles the positioning (zero jitter,
- * GPU-composited). ScrollTrigger only drives the animations: wrapper scale,
- * footer opacity, and optional custom translateY settle-in.
+ * The footer's own reveal effects (opacity, translateY) are pure CSS
+ * (`src/styles/fixed-reveal.sass`) bound to the runway's view timeline.
+ * This class owns ONLY what CSS cannot express:
  *
- * All visual parameters are read from CSS custom properties registered
- * via CSS.registerProperty(), so Elementor's responsive controls drive
- * the values through CSS — no JS option passing needed.
+ *  - the RUNWAY: a static in-flow div this class wraps around the footer
+ *    at init() (and unwraps at destroy()) — the view-timeline subject (a
+ *    sticky footer would distort ranges; its wrapper keeps the in-flow
+ *    slot). JS-owned wrapping keeps the package THEME-AGNOSTIC (no theme
+ *    markup contract — works on any theme, e.g. Hello) and AJAX-safe:
+ *    partial-update systems that swap/insert/remove the footer element
+ *    never meet a foreign wrapper server-side, and the standard
+ *    destroy() → init() re-init cycle re-wraps whatever footer exists;
+ *  - the wrapper's scale-down: the wrapper is a DOM SIBLING of the runway,
+ *    so no ancestor timeline lookup exists and `timeline-scope` is not
+ *    polyfill-viable — a WAAPI animation on a JS-built `ViewTimeline`
+ *    crosses the sibling boundary instead (compositor-threaded in native
+ *    browsers; the polyfill's JS constructors are its most reliable path);
+ *  - the scale endpoint `(vw − 2·gap) / vw`, recomputed on resize only;
+ *  - the taller-than-viewport class that neutralizes the CSS translateY
+ *    settle-in (parity with the v1 guard).
+ *
+ * No per-frame JS anywhere: the timeline samples live geometry natively,
+ * so content growth (infinite scroll) needs no refresh at all.
  */
 export class ArtsFixedReveal {
   private readonly wrapperSelector: string
   private readonly footerSelector: string
-  private opacityEnabled: boolean
-  private translateYMode: TTranslateYMode
-  private timeline: gsap.core.Timeline | null = null
-  private settingsService: LiveSettingsService | null = null
   private wrapper: HTMLElement | null = null
-  private footer: HTMLElement | null = null
-  /** Cached from RO entry — avoids offsetHeight reads in ScrollTrigger hot paths */
-  private footerHeight = 0
+  private runway: HTMLElement | null = null
+  /** True when init() created the runway (vs adopting an existing one) —
+   *  only self-created wrappers are unwrapped on destroy(). */
+  private ownsRunway = false
+  private animation: Animation | null = null
   private resizeObserver: Resize | null = null
+  private waitHandle: number | null = null
 
   constructor(options: IFixedRevealOptions = {}) {
     this.wrapperSelector = options.wrapperSelector ?? DEFAULTS.wrapperSelector
     this.footerSelector = options.footerSelector ?? DEFAULTS.footerSelector
-    this.opacityEnabled = options.opacityEnabled ?? DEFAULTS.opacityEnabled
-    this.translateYMode = options.translateYMode ?? DEFAULTS.translateYMode
 
-    this.registerProperties()
+    this.registerGapProperty()
   }
 
   init(): void {
@@ -47,216 +63,215 @@ export class ArtsFixedReveal {
       return
     }
 
-    /** Skip when footer is inside the wrapper (e.g. editing a footer template in Elementor) */
+    /** Editor/template contexts render the footer inside the wrapper — skip */
     if (wrapper.contains(footer)) {
       return
     }
 
     this.wrapper = wrapper
-    this.footer = footer
-    /** Seed the cache — RO's first callback fires on the next frame, not synchronously */
-    this.footerHeight = footer.offsetHeight
+    this.runway = this.wrapRunway(footer)
 
+    this.syncTallerClass()
+    // The footer's final height can land after init() (lazy component-chunk
+    // CSS, late media) without producing a resize entry this instance acts
+    // on — re-sync once the page settles. Harmless post-destroy: the sync
+    // no-ops when the runway ref is gone.
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', () => this.syncTallerClass(), { once: true })
+    }
+    this.whenViewTimelineAvailable(() => {
+      this.buildAnimation()
+    })
     this.setupResizeObserver()
-    this.buildTimelineIfEligible()
   }
 
   destroy(): void {
+    if (this.waitHandle !== null) {
+      window.clearInterval(this.waitHandle)
+      this.waitHandle = null
+    }
     if (this.resizeObserver) {
       this.resizeObserver.destroy()
       this.resizeObserver = null
     }
-    if (this.timeline) {
-      this.timeline.kill()
-      this.timeline = null
+    if (this.animation) {
+      this.animation.cancel()
+      this.animation = null
     }
+    if (this.wrapper) {
+      this.wrapper.style.removeProperty('transform-origin')
+    }
+    this.unwrapRunway()
     this.wrapper = null
-    this.footer = null
-    this.footerHeight = 0
+    this.runway = null
   }
 
-  /** Attach live settings listener for Elementor editor WYSIWYG */
-  loadElementorSettingsHandler(): void {
-    if (this.settingsService) {
+  /** Wrap the footer in the runway div (or adopt an existing wrapper —
+   *  idempotent across re-inits and server-rendered markup). The
+   *  insertBefore + appendChild pair preserves exact document order, so
+   *  the wrap is layout-neutral. */
+  private wrapRunway(footer: HTMLElement): HTMLElement {
+    const parent = footer.parentElement
+
+    if (parent?.classList.contains(RUNWAY_CLASS)) {
+      this.ownsRunway = false
+      return parent
+    }
+
+    const runway = document.createElement('div')
+    runway.className = RUNWAY_CLASS
+
+    if (parent) {
+      parent.insertBefore(runway, footer)
+    }
+    runway.appendChild(footer)
+    this.ownsRunway = true
+
+    return runway
+  }
+
+  /** Move the footer back out and drop a self-created runway — leaves the
+   *  DOM exactly as found, so repeated destroy() → init() cycles (AJAX
+   *  re-inits, editor toggles) never accumulate wrappers. */
+  private unwrapRunway(): void {
+    const runway = this.runway
+
+    if (!runway) {
       return
     }
 
-    this.settingsService = new LiveSettingsService(
-      async () => this.onSettingsChange(),
-      ELEMENTOR_MAPPED_OPTIONS,
+    runway.classList.remove(TALLER_CLASS)
+
+    if (!this.ownsRunway) {
+      return
+    }
+
+    const parent = runway.parentElement
+
+    if (parent) {
+      while (runway.firstChild) {
+        parent.insertBefore(runway.firstChild, runway)
+      }
+      runway.remove()
+    }
+
+    this.ownsRunway = false
+  }
+
+  /** The polyfill loads via a guarded async append — in non-native
+   *  browsers `ViewTimeline` may not exist yet when this script runs.
+   *  Native browsers resolve synchronously. */
+  private whenViewTimelineAvailable(callback: () => void): void {
+    if (this.getViewTimelineCtor()) {
+      callback()
+      return
+    }
+
+    const startedAt = Date.now()
+    this.waitHandle = window.setInterval(() => {
+      if (this.getViewTimelineCtor()) {
+        if (this.waitHandle !== null) {
+          window.clearInterval(this.waitHandle)
+          this.waitHandle = null
+        }
+        callback()
+      } else if (Date.now() - startedAt > 5000) {
+        /** No native support and no polyfill arrived — the CSS
+         *  effects are equally inert here; leave the wrapper static. */
+        if (this.waitHandle !== null) {
+          window.clearInterval(this.waitHandle)
+          this.waitHandle = null
+        }
+      }
+    }, 100)
+  }
+
+  private getViewTimelineCtor(): IViewTimelineCtor | undefined {
+    return (window as unknown as { ViewTimeline?: IViewTimelineCtor }).ViewTimeline
+  }
+
+  private buildAnimation(): void {
+    if (!this.wrapper || !this.runway) {
+      return
+    }
+
+    const ViewTimelineCtor = this.getViewTimelineCtor()
+    if (!ViewTimelineCtor) {
+      return
+    }
+
+    if (this.animation) {
+      this.animation.cancel()
+      this.animation = null
+    }
+
+    const scale = this.getScale()
+    if (scale >= 1) {
+      return
+    }
+
+    this.wrapper.style.transformOrigin = '50% 100%'
+
+    const options = {
+      timeline: new ViewTimelineCtor({ subject: this.runway }),
+      rangeStart: 'entry 0%',
+      rangeEnd: 'entry 100%',
+      fill: 'both',
+      easing: 'linear',
+    }
+
+    this.animation = this.wrapper.animate(
+      [{ scale: '1' }, { scale: String(scale) }],
+      options as unknown as KeyframeAnimationOptions,
     )
   }
 
-  /** Detach live settings listener */
-  destroyElementorSettingsHandler(): void {
-    if (this.settingsService) {
-      this.settingsService.detach()
-      this.settingsService = null
-    }
-  }
-
-  /** Full reinit on any setting change — CSS vars are re-read fresh */
-  private async onSettingsChange(): Promise<void> {
-    this.destroy()
-    this.init()
-  }
-
-  /** Observe wrapper + footer so eligibility re-evaluates across breakpoints and deferred content growth */
+  /** Rebuild on resize only — the scale endpoint depends on vw + gap;
+   *  everything else (content growth, footer height) is sampled live by
+   *  the timeline itself. */
   private setupResizeObserver(): void {
-    if (!this.wrapper || !this.footer) {
+    if (!this.runway) {
       return
     }
 
     this.resizeObserver = new Resize({
-      elements: [this.wrapper, this.footer],
-      callbackResize: (_targets, entries) => {
-        for (const entry of entries) {
-          if (entry.target === this.footer) {
-            /** Round to match offsetHeight semantics — ScrollTrigger.maxScroll() is an integer, subpixel mismatch breaks the eligibility check */
-            const raw = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height
-            this.footerHeight = Math.round(raw)
-          }
-        }
-      },
+      elements: [this.runway],
       callbackResizeDebounced: debounce(() => {
-        this.buildTimelineIfEligible()
+        this.syncTallerClass()
+        this.buildAnimation()
       }, 150),
     })
   }
 
-  /** Effect eligibility — reads cached height to stay free of layout reads */
-  private isEligible(): boolean {
-    if (!this.wrapper || !this.footer) {
-      return false
-    }
-    if (this.footerHeight <= 0) {
-      return false
-    }
-    if (ScrollTrigger.maxScroll(window) < this.footerHeight) {
-      return false
-    }
-    return true
-  }
-
-  /** Build, tear down, or refresh the timeline based on current eligibility */
-  private buildTimelineIfEligible(): void {
-    const eligible = this.isEligible()
-
-    if (eligible && !this.timeline) {
-      this.buildTimeline()
-    } else if (!eligible && this.timeline) {
-      this.timeline.kill()
-      this.timeline = null
-    } else if (eligible && this.timeline) {
-      /** Content/footer shifted while eligible — refresh so the start getter picks up the new cache value.
-       * Skip if a global refresh pass is already in flight; it'll run our getter anyway.
-       * isRefreshing is public on ScrollTrigger at runtime but missing from the typings. */
-      const isRefreshing = (ScrollTrigger as unknown as { isRefreshing: boolean }).isRefreshing
-      if (!isRefreshing) {
-        this.timeline.scrollTrigger?.refresh()
-      }
-    }
-  }
-
-  private buildTimeline(): void {
-    if (!this.wrapper || !this.footer) {
+  /** Neutralizes the CSS translateY settle-in on footers taller than the
+   *  viewport (see fixed-reveal.sass) — measured here because the island
+   *  already owns a resize path. */
+  private syncTallerClass(): void {
+    if (!this.runway) {
       return
     }
-    const wrapper = this.wrapper
-    const footer = this.footer
-
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        start: () => ScrollTrigger.maxScroll(window) - this.footerHeight,
-        // End = start + reveal DISTANCE. Distance defaults to footerHeight
-        // (→ end = maxScroll = the old `'max'`, unchanged for normal footers),
-        // but a footer can shrink it via `--arts-fixed-reveal-height` when part
-        // of its height is scroll runway rather than revealable content (e.g. a
-        // `position: sticky` scene sitting at the footer's top with a taller
-        // track below it). `start` stays on footerHeight — the reveal still
-        // BEGINS when the footer first enters — only the DURATION shortens, so
-        // the scale-down completes as the content lands instead of continuing
-        // to animate an already-offscreen wrapper across the runway.
-        end: () => ScrollTrigger.maxScroll(window) - this.footerHeight + this.getRevealHeight(),
-        scrub: true,
-        invalidateOnRefresh: true,
-        // Refresh LAST in the trigger queue. Our `start` getter reads
-        // `ScrollTrigger.maxScroll(window)`, which depends on whether
-        // other triggers' pinSpacing elements are currently in the DOM.
-        // Default (priority 0) puts us in DOM order; a sibling pin
-        // refreshing later than us would leave us with a stale `start`
-        // computed against the un-pinned page height, then the wrapper
-        // renders at an interpolated scale even at scrollY=0.
-        //
-        // GSAP sorts by `refreshPriority * -1e6` ascending — negative
-        // values land at the end of the queue. It's a full numeric sort,
-        // but any negative value meets our one constraint: refresh after
-        // the priority-0 consumer pins. `-999` mirrors the framework
-        // convention already used in `ArtsHeader Sticky.ts:210`. Anything
-        // more negative (e.g. ScrollSmoother's `-9999`) could refresh
-        // after us — harmless, since both global-geometry triggers
-        // (ArtsHeader + ArtsFixedReveal) still land after consumer pins.
-        refreshPriority: -999,
-      },
-    })
-
-    tl.to(
-      wrapper,
-      {
-        scale: () => this.getScale(),
-        transformOrigin: '50% 100%',
-        ease: 'none',
-        duration: 1,
-      },
-      0,
-    )
-
-    this.addFooterEffects(tl, footer)
-    this.timeline = tl
+    this.runway.classList.toggle(TALLER_CLASS, this.runway.offsetHeight > window.innerHeight)
   }
 
-  /** Register typed CSS custom properties so getComputedStyle resolves any unit to a number */
-  private registerProperties(): void {
-    const props: Array<{ name: string; syntax: string; initial: string }> = [
-      { name: CSS_VARS.gap, syntax: '<length>', initial: '0px' },
-      { name: CSS_VARS.opacityFrom, syntax: '<number>', initial: '1' },
-      { name: CSS_VARS.translateYFrom, syntax: '<length>', initial: '0px' },
-      // `0px` initial = "unset" — `getRevealHeight` falls back to footerHeight.
-      { name: CSS_VARS.height, syntax: '<length>', initial: '0px' },
-    ]
-
-    for (const { name, syntax, initial } of props) {
-      try {
-        CSS.registerProperty({
-          name,
-          syntax,
-          inherits: true,
-          initialValue: initial,
-        })
-      } catch {
-        // Already registered
-      }
+  /** Register the gap var typed so getComputedStyle resolves ANY unit
+   *  (rem/vw/clamp) to a pixel number — the one surviving registration;
+   *  the other vars are consumed by CSS keyframes directly. */
+  private registerGapProperty(): void {
+    try {
+      CSS.registerProperty({
+        name: CSS_VARS.gap,
+        syntax: '<length>',
+        inherits: true,
+        initialValue: '0px',
+      })
+    } catch {
+      // Already registered
     }
   }
 
-  /** Read a resolved CSS custom property value as a number from a given
-   *  element (default: `document.body`). CSS variables inherit DOWN the
-   *  tree only, so per-instance overrides set on the footer (or the
-   *  wrapper) are invisible when read from `body`. Callers that want
-   *  instance-scoped values must pass the relevant element. */
   private getCSSVar(name: string, el: HTMLElement = document.body): number {
     const raw = getComputedStyle(el).getPropertyValue(name)
     return parseFloat(raw) || 0
-  }
-
-  /** Reveal distance in scroll px — the `--arts-fixed-reveal-height` override
-   *  read from the footer, or the measured footer height when unset (`0`). */
-  private getRevealHeight(): number {
-    if (!this.footer) {
-      return this.footerHeight
-    }
-    const override = this.getCSSVar(CSS_VARS.height, this.footer)
-    return override > 0 ? override : this.footerHeight
   }
 
   /** Compute scale factor from the gap CSS variable and viewport width */
@@ -268,59 +283,5 @@ export class ArtsFixedReveal {
       return 1
     }
     return (vw - 2 * gap) / vw
-  }
-
-  /** Add opacity and/or custom translateY tweens for the footer */
-  private addFooterEffects(tl: gsap.core.Timeline, footer: HTMLElement): void {
-    this.addFooterOpacity(tl, footer)
-    this.addFooterCustomTranslateY(tl, footer)
-  }
-
-  /** Fade footer from starting opacity to 1. Reads the `opacityFrom` CSS
-   *  var from the footer element itself so per-instance overrides — e.g.
-   *  `[data-elementor-type="footer"]:has(.heavy-widget) { --…-opacity-from: 1 }`
-   *  — correctly skip the tween. Reading from `body` would miss any var
-   *  declared deeper in the tree (CSS variables don't propagate upward). */
-  private addFooterOpacity(tl: gsap.core.Timeline, footer: HTMLElement): void {
-    if (!this.opacityEnabled) {
-      return
-    }
-
-    if (this.getCSSVar(CSS_VARS.opacityFrom, footer) >= 1) {
-      return
-    }
-
-    tl.fromTo(
-      footer,
-      { opacity: () => Math.max(OPACITY_FLOOR, this.getCSSVar(CSS_VARS.opacityFrom, footer)) },
-      { opacity: 1, ease: 'none', duration: 1 },
-      0,
-    )
-  }
-
-  /** Custom translateY settle-in (only in "custom" mode). Reads from
-   *  the footer for the same reason `addFooterOpacity` does — per-instance
-   *  overrides set deeper in the tree must be visible. */
-  private addFooterCustomTranslateY(tl: gsap.core.Timeline, footer: HTMLElement): void {
-    if (this.translateYMode !== 'custom') {
-      return
-    }
-
-    if (this.getCSSVar(CSS_VARS.translateYFrom, footer) === 0) {
-      return
-    }
-
-    tl.fromTo(
-      footer,
-      /** Skip offset when footer is taller than viewport — small offset looks bad at that size */
-      {
-        y: () =>
-          this.footerHeight > window.innerHeight
-            ? 0
-            : this.getCSSVar(CSS_VARS.translateYFrom, footer),
-      },
-      { y: 0, ease: 'none', duration: 1 },
-      0,
-    )
   }
 }

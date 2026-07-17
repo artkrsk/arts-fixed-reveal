@@ -27,17 +27,14 @@ class Options extends BaseManager {
 	 * @return array<string, mixed>
 	 */
 	public function get_options(): array {
-		$enabled_raw         = Utilities::get_kit_setting_or_option( 'fixed_reveal_enabled', 'yes' );
-		$opacity_enabled_raw = Utilities::get_kit_setting_or_option( 'fixed_reveal_opacity_enabled', 'yes' );
-		$translate_y_mode    = Utilities::get_string_value(
-			Utilities::get_kit_setting_or_option( 'fixed_reveal_translate_y_mode', 'fixed' ),
-			'fixed'
-		);
+		$enabled_raw = Utilities::get_kit_setting_or_option( 'fixed_reveal_enabled', 'yes' );
 
+		// `opacity_enabled` / `translate_y_mode` are a pure CSS contract in
+		// the v2 architecture: their sub-controls gate the CSS var emission
+		// via Elementor conditions, and the keyframes' var() fallbacks make
+		// an absent var a no-op — no runtime switch needed.
 		return array(
-			'enabled'        => ! empty( $enabled_raw ),
-			'opacityEnabled' => ! empty( $opacity_enabled_raw ),
-			'translateYMode' => $translate_y_mode,
+			'enabled' => ! empty( $enabled_raw ),
 		);
 	}
 

@@ -29,7 +29,7 @@ function buildBanner(): string {
   ].join('\n')
 }
 
-/** Copy IIFE to src/php/libraries/ and prepend banner after each build */
+/** Copy IIFE + CSS to src/php/libraries/ and prepend banner after each build */
 function copyToLibraries() {
   return {
     name: 'copy-iife-to-libraries',
@@ -48,6 +48,14 @@ function copyToLibraries() {
       writeFileSync(iifeFile, banner + content)
 
       cpSync(iifeFile, dest)
+
+      // The stylesheet is a first-class asset now (runway + footer
+      // keyframes contract) — same banner + copy treatment.
+      const cssFile = resolve('dist', 'index.css')
+      if (existsSync(cssFile)) {
+        writeFileSync(cssFile, banner + readFileSync(cssFile, 'utf-8'))
+        cpSync(cssFile, resolve(LIBRARY_DIR, 'index.css'))
+      }
     },
   }
 }
@@ -62,11 +70,10 @@ export default defineConfig({
       name: 'ArtsFixedReveal',
       formats: ['es', 'iife'],
       fileName: (format) => format === 'es' ? 'index.mjs' : `index.${format}.js`,
+      cssFileName: 'index',
     },
     rollupOptions: {
-      external: (id: string) => /^gsap/.test(id),
       output: {
-        globals: { gsap: 'gsap' },
         exports: 'default',
       },
     },

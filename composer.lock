@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e26c20ff150f7b1eae5c1347270888c8",
+    "content-hash": "28c141b84f462d312e709ad38163485c",
     "packages": [
         {
             "name": "arts/base",
@@ -62,7 +62,7 @@
             "dist": {
                 "type": "path",
                 "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension",
-                "reference": "c7a0c045fd11bf406526aa6d6e0e7cc9fca7ccc8"
+                "reference": "59cad042d24c31aa59965e6f542c07405d16133d"
             },
             "require": {
                 "arts/base": "@dev",
@@ -129,16 +129,15 @@
             }
         },
         {
-            "name": "arts/gsap-loader",
-            "version": "dev-main",
+            "name": "arts/scroll-timeline-polyfill",
+            "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "/Users/art/Projects/Framework/packages/ArtsGSAPLoader",
-                "reference": "09b113e9e3d5348a758ab10b45eae3327b92a96a"
+                "url": "/Users/art/Projects/Framework/packages/ArtsScrollTimelinePolyfill",
+                "reference": "f9812ef5113024412eb168ed7746c98c6e587062"
             },
             "require": {
                 "arts/base": "@dev",
-                "arts/utilities": "@dev",
                 "php": ">=8.0"
             },
             "require-dev": {
@@ -153,7 +152,7 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Arts\\GSAPLoader\\": "src/php/"
+                    "Arts\\ScrollTimelinePolyfill\\": "src/php/"
                 }
             },
             "scripts": {
@@ -186,13 +185,16 @@
                     "phpstan analyse --memory-limit=1G --generate-baseline"
                 ]
             },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
             "authors": [
                 {
                     "name": "Artem Semkin",
                     "email": "me@artemsemkin.com"
                 }
             ],
-            "description": "Automatically loads GSAP (GreenSock Animation Platform) scripts in your WordPress themes or plugins.",
+            "description": "Registers the flackr scroll-timeline polyfill as a self-gating WordPress script for browsers without native CSS scroll-driven animations, plus an opt-out API for stylesheets the polyfill must not transpile.",
             "transport-options": {
                 "symlink": true,
                 "relative": false
@@ -204,7 +206,7 @@
             "dist": {
                 "type": "path",
                 "url": "/Users/art/Projects/Framework/packages/ArtsUtilities",
-                "reference": "814534a5faf0315246a41f4192b89590226b83aa"
+                "reference": "88db6037910a951ab37b3468654f89e79b248134"
             },
             "require": {
                 "php": ">=8.0"
@@ -272,7 +274,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "arts/elementor-extension": 20,
-        "arts/gsap-loader": 20,
+        "arts/scroll-timeline-polyfill": 20,
         "arts/utilities": 20
     },
     "prefer-stable": false,

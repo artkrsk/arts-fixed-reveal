@@ -9,6 +9,20 @@ interface IViewTimelineCtor {
 const RUNWAY_CLASS = 'arts-fixed-reveal__runway'
 const TALLER_CLASS = 'is-taller-than-viewport'
 
+/** Uniform scale from the STANDALONE `scale` property — where the keyframes
+ *  below write. Deliberately not `transform`: computed `transform` excludes
+ *  the individual transform properties, so a matrix decomposition reads 1
+ *  here no matter how far the scrub has progressed. */
+function readScale(el: HTMLElement): number {
+  const raw = getComputedStyle(el).scale
+
+  if (!raw || raw === 'none') {
+    return 1
+  }
+
+  return parseFloat(raw) || 1
+}
+
 /**
  * Scroll-driven fixed reveal — the JS island of the v2 architecture.
  *
@@ -47,6 +61,9 @@ export class ArtsFixedReveal {
   private animation: Animation | null = null
   private resizeObserver: Resize | null = null
   private waitHandle: number | null = null
+  /** Set by freezeScale() — a caller owns the wrapper's scale from here
+   *  until the next init(), so no rebuild may re-arm the animation. */
+  private frozen = false
 
   constructor(options: IFixedRevealOptions = {}) {
     this.wrapperSelector = options.wrapperSelector ?? DEFAULTS.wrapperSelector
@@ -68,6 +85,7 @@ export class ArtsFixedReveal {
       return
     }
 
+    this.frozen = false
     this.wrapper = wrapper
     this.runway = this.wrapRunway(footer)
 
@@ -104,6 +122,51 @@ export class ArtsFixedReveal {
     this.unwrapRunway()
     this.wrapper = null
     this.runway = null
+  }
+
+  /**
+   * Stop driving the wrapper's scale and report the value it stopped at.
+   *
+   * For handing the element to another animation system mid-scrub (the AJAX
+   * transition's leave choreography takes over the leaving page's transform).
+   * The keyframes drive the STANDALONE `scale` property, which composes
+   * MULTIPLICATIVELY with any `transform` the new owner writes — so the
+   * animation must be gone, not merely paused, or the scale applies twice.
+   *
+   * Nothing is re-applied here: the caller owns the value from this point and
+   * must re-establish it SYNCHRONOUSLY, or a frame paints unscaled.
+   *
+   * Sticky until the next `init()`, and that latch is the load-bearing half:
+   * cancelling alone is not enough, because whatever the caller does next
+   * usually resizes the runway (an AJAX transition takes the page out of
+   * flow), and the resize observer would rebuild the animation right back
+   * onto an element somebody else now owns — measured at ~10 frames after
+   * the cancel, surfacing as a scale pop plus a compounded shrink.
+   */
+  freezeScale(): number {
+    this.frozen = true
+
+    const scale = this.wrapper ? readScale(this.wrapper) : 1
+
+    if (this.animation) {
+      // Separate try blocks on purpose: commitStyles() throws on a target
+      // that isn't being rendered, and a shared catch would swallow that
+      // and skip the cancel() — leaving the animation alive to fight the
+      // caller, which is the whole failure this method exists to prevent.
+      try {
+        this.animation.commitStyles()
+      } catch {
+        // Nothing baked inline — the RETURNED value still carries the state.
+      }
+      try {
+        this.animation.cancel()
+      } catch {
+        // Already cancelled.
+      }
+      this.animation = null
+    }
+
+    return scale
   }
 
   /** Wrap the footer in the runway div (or adopt an existing wrapper —
@@ -191,7 +254,7 @@ export class ArtsFixedReveal {
   }
 
   private buildAnimation(): void {
-    if (!this.wrapper || !this.runway) {
+    if (!this.wrapper || !this.runway || this.frozen) {
       return
     }
 

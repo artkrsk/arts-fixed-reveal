@@ -20,6 +20,16 @@
 // ArtsFixedReveal.ts (the wrapper is a DOM SIBLING of the runway — no
 // ancestor timeline lookup, and `timeline-scope` is polyfill-hostile).
 
+// The gap is typed so getComputedStyle resolves ANY unit (rem/vw/clamp) to
+// a pixel number for the scale endpoint; the other vars are consumed by the
+// keyframes directly. Registered here — the stylesheet is enqueued in the
+// head — because a `CSS.registerProperty()` from the deferred script landed
+// after first paint and restyled the whole document.
+@property --arts-fixed-reveal-gap
+	syntax: '<length>'
+	inherits: true
+	initial-value: 0px
+
 .arts-fixed-reveal__runway
 	view-timeline: --arts-fixed-reveal block
 

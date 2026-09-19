@@ -39,6 +39,15 @@ class Frontend extends BaseManager {
 			array(),
 			false
 		);
+
+		// The style goes in the head, ahead of the footer check the script waits for: printed from
+		// wp_footer it lands after the first style pass, and its `@property` registration would then
+		// restyle the whole document. Its rules are inert on a page without the runway.
+		$enabled = Utilities::get_bool_value( $options['enabled'] ?? null, false );
+
+		if ( $enabled || Utilities::is_elementor_editor_active() ) {
+			wp_enqueue_style( $this->handle );
+		}
 	}
 
 	public function enqueue(): void {
@@ -59,6 +68,5 @@ class Frontend extends BaseManager {
 		}
 
 		wp_enqueue_script( $this->handle );
-		wp_enqueue_style( $this->handle );
 	}
 }

@@ -16,7 +16,7 @@ Three CSS layers, no custom color controls:
 
 ## CSS Variable Architecture
 
-All visual parameters are CSS custom properties registered via `CSS.registerProperty()`. Elementor's responsive slider controls set the values through CSS selectors. JS reads resolved values via `getComputedStyle`: the gap from `document.body`, but the opacity/translateY vars from the **footer element** — so per-instance overrides declared deeper in the tree are honored (CSS vars inherit downward only).
+All visual parameters are CSS custom properties; only the gap is registered (typed `<length>`, via `@property` in `fixed-reveal.sass` — the stylesheet is enqueued in the head so the registration lands in the first style pass; a late registration restyles the whole document). Elementor's responsive slider controls set the values through CSS selectors. JS reads resolved values via `getComputedStyle`: the gap from `document.body`, but the opacity/translateY vars from the **footer element** — so per-instance overrides declared deeper in the tree are honored (CSS vars inherit downward only).
 
 | Variable                               | Syntax     | Initial | Purpose                     |
 | -------------------------------------- | ---------- | ------- | --------------------------- |

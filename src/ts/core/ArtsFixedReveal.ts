@@ -68,8 +68,6 @@ export class ArtsFixedReveal {
   constructor(options: IFixedRevealOptions = {}) {
     this.wrapperSelector = options.wrapperSelector ?? DEFAULTS.wrapperSelector
     this.footerSelector = options.footerSelector ?? DEFAULTS.footerSelector
-
-    this.registerGapProperty()
   }
 
   init(): void {
@@ -314,22 +312,6 @@ export class ArtsFixedReveal {
       return
     }
     this.runway.classList.toggle(TALLER_CLASS, this.runway.offsetHeight > window.innerHeight)
-  }
-
-  /** Register the gap var typed so getComputedStyle resolves ANY unit
-   *  (rem/vw/clamp) to a pixel number — the one surviving registration;
-   *  the other vars are consumed by CSS keyframes directly. */
-  private registerGapProperty(): void {
-    try {
-      CSS.registerProperty({
-        name: CSS_VARS.gap,
-        syntax: '<length>',
-        inherits: true,
-        initialValue: '0px',
-      })
-    } catch {
-      // Already registered
-    }
   }
 
   private getCSSVar(name: string, el: HTMLElement = document.body): number {

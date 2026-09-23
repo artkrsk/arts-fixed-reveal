@@ -134,7 +134,7 @@
             "dist": {
                 "type": "path",
                 "url": "/Users/art/Projects/Framework/packages/ArtsScrollTimelinePolyfill",
-                "reference": "f9812ef5113024412eb168ed7746c98c6e587062"
+                "reference": "7893ebde98c3832ca98364ea543801b70c63629d"
             },
             "require": {
                 "arts/base": "@dev",

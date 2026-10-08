@@ -65,11 +65,12 @@ export default defineConfig({
     open: true,
   },
   build: {
+    emptyOutDir: false,
     lib: {
-      entry: 'src/ts/index.ts',
+      entry: 'src/ts/boot.ts',
       name: 'ArtsFixedReveal',
-      formats: ['es', 'iife'],
-      fileName: (format) => format === 'es' ? 'index.mjs' : `index.${format}.js`,
+      formats: ['iife'],
+      fileName: () => 'index.iife.js',
       cssFileName: 'index',
     },
     rollupOptions: {

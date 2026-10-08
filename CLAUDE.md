@@ -49,14 +49,19 @@ When enabled, `Options.php` hooks into `elementor/element/before_section_end` an
 
 ## Build
 
-Vite library mode. GSAP externalized (runtime global via ArtsGSAPLoader). Output: `src/php/libraries/arts-fixed-reveal/index.iife.js`.
+The WordPress Vite build starts from `src/ts/boot.ts` and mirrors its IIFE/CSS to `src/php/libraries/arts-fixed-reveal/`. `build:library` separately emits passive ESM, declarations and CSS under `dist/esm` and `dist/types`; it never mirrors WordPress assets. Neither build removes the other's output.
 
 ```
 pnpm dev      # Dev playground with theme-like fixture
 pnpm dev:lib  # Watch + copy IIFE for Composer consumers
 pnpm build    # One-shot build
+pnpm build:library # ESM, declarations and CSS for packed browser consumers
 pnpm check    # Type-check (tsc --noEmit)
 ```
+
+For a browser host, import `ArtsFixedReveal` from `@arts/fixed-reveal`, load `@arts/fixed-reveal/styles.css` in the head, then construct and explicitly call `init()`. Publish the instance as `window.artsFixedReveal` when using the navigator's existing FixedReveal adapter; dispose it with `destroy()`. The root is passive, including with WordPress options present. Source consumers select `arts-source` and compile `@arts/fixed-reveal/styles.sass` instead. The explicit extension avoids Sass package-importer ambiguity with `styles.css`. The public `@arts/utilities` peer must be installed alongside this package (a prepared archive is sufficient).
+
+Initialize the shared scroll-timeline loader before this effect. The engine uses native/polyfilled `ViewTimeline`; it does not create GSAP or ScrollTrigger instances. Retain the `#page-wrapper` and `[data-elementor-type="footer"]` shell contract, including the stylesheet's footer selector.
 
 ## Edge Cases
 

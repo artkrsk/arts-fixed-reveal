@@ -61,6 +61,7 @@ export class ArtsFixedReveal {
   private animation: Animation | null = null
   private resizeObserver: Resize | null = null
   private waitHandle: number | null = null
+  private lifetime: AbortController | null = null
   /** Set by freezeScale() — a caller owns the wrapper's scale from here
    *  until the next init(), so no rebuild may re-arm the animation. */
   private frozen = false
@@ -71,6 +72,9 @@ export class ArtsFixedReveal {
   }
 
   init(): void {
+    if (this.wrapper) {
+      return
+    }
     const wrapper = document.querySelector<HTMLElement>(this.wrapperSelector)
     const footer = document.querySelector<HTMLElement>(this.footerSelector)
 
@@ -84,16 +88,19 @@ export class ArtsFixedReveal {
     }
 
     this.frozen = false
+    this.lifetime = new AbortController()
     this.wrapper = wrapper
     this.runway = this.wrapRunway(footer)
 
     this.syncTallerClass()
     // The footer's final height can land after init() (lazy component-chunk
     // CSS, late media) without producing a resize entry this instance acts
-    // on — re-sync once the page settles. Harmless post-destroy: the sync
-    // no-ops when the runway ref is gone.
+    // on — re-sync once the page settles.
     if (document.readyState !== 'complete') {
-      window.addEventListener('load', () => this.syncTallerClass(), { once: true })
+      window.addEventListener('load', () => this.syncTallerClass(), {
+        once: true,
+        signal: this.lifetime.signal,
+      })
     }
     this.whenViewTimelineAvailable(() => {
       this.buildAnimation()
@@ -102,6 +109,8 @@ export class ArtsFixedReveal {
   }
 
   destroy(): void {
+    this.lifetime?.abort()
+    this.lifetime = null
     if (this.waitHandle !== null) {
       window.clearInterval(this.waitHandle)
       this.waitHandle = null
@@ -295,9 +304,13 @@ export class ArtsFixedReveal {
       return
     }
 
+    const signal = this.lifetime?.signal
     this.resizeObserver = new Resize({
       elements: [this.runway],
       callbackResizeDebounced: debounce(() => {
+        if (signal?.aborted) {
+          return
+        }
         this.syncTallerClass()
         this.buildAnimation()
       }, 150),

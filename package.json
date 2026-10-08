@@ -8,36 +8,48 @@
   "private": true,
   "sideEffects": [
     "**/*.sass",
-    "./src/ts/index.ts"
+    "**/*.css",
+    "./src/ts/boot.ts"
   ],
-  "main": "./dist/index.iife.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/ts/index.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.iife.js"
-    }
+      "types": {
+        "arts-source": "./src/ts/index.ts",
+        "default": "./dist/types/index.d.ts"
+      },
+      "arts-source": "./src/ts/index.ts",
+      "import": "./dist/esm/index.js"
+    },
+    "./styles.sass": "./src/styles/fixed-reveal.sass",
+    "./styles.css": "./dist/esm/styles.css",
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "src"
+    "dist/esm",
+    "dist/types",
+    "src/ts",
+    "src/styles"
   ],
   "engines": {
     "node": ">=23.0.0"
   },
-  "dependencies": {
-    "@arts/utilities": "file:../ArtsUtilities"
+  "peerDependencies": {
+    "@arts/utilities": "^2.7.0"
   },
   "scripts": {
     "dev": "vite",
     "dev:lib": "vite build --watch",
     "build": "vite build",
+    "build:library": "node scripts/build-library.mjs",
     "check": "tsc --noEmit",
     "deps:check": "npx npm-check-updates",
     "deps:update": "npx npm-check-updates -u && pnpm install"
   },
   "devDependencies": {
+    "@arts/utilities": "file:../ArtsUtilities",
     "@biomejs/biome": "2.4.13",
     "@types/node": "^25.6.0",
     "sass-embedded": "^1.99.0",

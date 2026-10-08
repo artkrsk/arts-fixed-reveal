@@ -1,4 +1,5 @@
 import ArtsFixedReveal from "../src/ts/index";
+import "../src/styles/fixed-reveal.sass";
 import "./styles/main.sass";
 
 // Simulate Elementor CSS output

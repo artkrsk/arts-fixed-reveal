@@ -48,11 +48,13 @@
 	&.is-taller-than-viewport > [data-elementor-type="footer"]
 		--arts-fixed-reveal-translate-y-from: 0px
 
-// Floor mirrors the v1 OPACITY_FLOOR: never start fully transparent so
-// the footer stays paintable/compositable from the first frame.
+// No floor (v1's 0.01 kept a GSAP inline tween from detaching at 0): a
+// current CSS opacity animation keeps the footer painted at 0, and exactly
+// 0 is what accessibility checkers (axe/Lighthouse) treat as hidden — at
+// 0.01 they blend the text into the background and fail its contrast.
 @keyframes arts-fixed-reveal-opacity
 	from
-		opacity: max(0.01, var(--arts-fixed-reveal-opacity-from, 1))
+		opacity: var(--arts-fixed-reveal-opacity-from, 1)
 	to
 		opacity: 1
 

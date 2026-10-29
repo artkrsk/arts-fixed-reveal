@@ -155,6 +155,19 @@ export class ArtsFixedReveal {
 
     const scale = this.wrapper ? readScale(this.wrapper) : 1
 
+    if (this.animation && scale >= 1) {
+      // At identity (before the footer range) the effect is PAUSED, not
+      // cancelled: cancelling drops the wrapper's compositing layer (iOS 26,
+      // measured: its backing store went from 14 MB to none), so every text
+      // on the page re-rasterised a pixel off at the AJAX leave tail and
+      // again when the cut composited the wrapper for `position: fixed`. A
+      // paused identity scale composes with whatever the caller writes as a
+      // plain 1, so the double-scale this method guards against cannot
+      // happen here. destroy() (the re-init) cancels it.
+      this.animation.pause()
+      return scale
+    }
+
     if (this.animation) {
       // Separate try blocks on purpose: commitStyles() throws on a target
       // that isn't being rendered, and a shared catch would swallow that
@@ -286,7 +299,15 @@ export class ArtsFixedReveal {
       timeline: new ViewTimelineCtor({ subject: this.runway }),
       rangeStart: 'entry 0%',
       rangeEnd: 'entry 100%',
-      fill: 'both',
+      // `forwards`, never `both`: before the runway's range `both` applies the
+      // identity keyframe, and a wrapper carrying `scale: 1` is "transformed"
+      // for WebKit, which then composites it whenever a descendant is (parallax
+      // media, video). iOS WebKit paints text inside a layer a pixel off its
+      // page position, so every page whose GPU content came and went moved all
+      // of its text between the two. `forwards` removes that reason; the
+      // running scroll-driven animation itself still composites the wrapper on
+      // iOS 26, which is why freezeScale() pauses it instead of cancelling.
+      fill: 'forwards',
       easing: 'linear',
     }
 

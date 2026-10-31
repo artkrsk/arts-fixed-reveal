@@ -59,6 +59,8 @@ export class ArtsFixedReveal {
    *  only self-created wrappers are unwrapped on destroy(). */
   private ownsRunway = false
   private animation: Animation | null = null
+  /** The scale endpoint `animation` was built for. */
+  private animatedScale = 1
   private resizeObserver: Resize | null = null
   private waitHandle: number | null = null
   private lifetime: AbortController | null = null
@@ -283,12 +285,20 @@ export class ArtsFixedReveal {
       return
     }
 
+    const scale = this.getScale()
+
+    // The resize observer delivers once on observe and on every footer height
+    // change, neither of which moves the endpoint. Cancelling then would drop
+    // the wrapper's compositing layer on iOS 26 and blank the page for a frame.
+    if (this.animation && scale === this.animatedScale) {
+      return
+    }
+
     if (this.animation) {
       this.animation.cancel()
       this.animation = null
     }
 
-    const scale = this.getScale()
     if (scale >= 1) {
       return
     }
@@ -315,6 +325,7 @@ export class ArtsFixedReveal {
       [{ scale: '1' }, { scale: String(scale) }],
       options as unknown as KeyframeAnimationOptions,
     )
+    this.animatedScale = scale
   }
 
   /** Rebuild on resize only — the scale endpoint depends on vw + gap;

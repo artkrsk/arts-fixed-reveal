@@ -24,7 +24,7 @@ class Frontend extends BaseManager {
 			$this->handle,
 			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.iife.js' ),
 			array( 'scroll-timeline-polyfill' ),
-			false,
+			$this->asset_version( 'index.iife.js' ),
 			array(
 				'in_footer' => true,
 				'strategy'  => 'defer',
@@ -37,7 +37,7 @@ class Frontend extends BaseManager {
 			$this->handle,
 			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.css' ),
 			array(),
-			false
+			$this->asset_version( 'index.css' )
 		);
 
 		// The style goes in the head, ahead of the footer check the script waits for: printed from
@@ -68,5 +68,17 @@ class Frontend extends BaseManager {
 		}
 
 		wp_enqueue_script( $this->handle );
+	}
+
+	/**
+	 * The file's modification time as its version. A `false` version falls back to the WordPress core
+	 * version, so a rebuilt bundle kept its URL and a CDN went on serving the old one for its max-age.
+	 *
+	 * @return string|false
+	 */
+	private function asset_version( string $file ) {
+		$mtime = @filemtime( dirname( __DIR__ ) . '/libraries/arts-fixed-reveal/' . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+
+		return false === $mtime ? false : (string) $mtime;
 	}
 }

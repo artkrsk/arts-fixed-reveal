@@ -77,7 +77,8 @@ class Frontend extends BaseManager {
 	 * @return string|false
 	 */
 	private function asset_version( string $file ) {
-		$mtime = @filemtime( dirname( __DIR__ ) . '/libraries/arts-fixed-reveal/' . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		$path  = dirname( __DIR__ ) . '/libraries/arts-fixed-reveal/' . $file;
+		$mtime = file_exists( $path ) ? filemtime( $path ) : false;
 
 		return false === $mtime ? false : (string) $mtime;
 	}

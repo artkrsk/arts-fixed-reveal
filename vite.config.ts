@@ -76,6 +76,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         exports: 'default',
+        /** Spelled out in full: Vite uses a user object in place of its own `minify: true`. */
+        minify: { compress: { dropConsole: true }, mangle: true, codegen: true },
       },
     },
   },

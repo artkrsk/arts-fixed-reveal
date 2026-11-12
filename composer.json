@@ -11,34 +11,11 @@
   ],
   "require": {
     "php": ">=8.0",
-    "arts/elementor-extension": "@dev",
-    "arts/scroll-timeline-polyfill": "@dev",
-    "arts/utilities": "@dev"
+    "arts/base": "^1.1",
+    "arts/elementor-extension": "^1.1",
+    "arts/scroll-timeline-polyfill": "^1.2.2",
+    "arts/utilities": "^2.7"
   },
-  "repositories": [
-    {
-      "type": "path",
-      "url": "/Users/art/Projects/Framework/packages/ArtsElementorExtension",
-      "options": {
-        "symlink": true
-      }
-    },
-    {
-      "type": "path",
-      "url": "/Users/art/Projects/Framework/packages/ArtsScrollTimelinePolyfill",
-      "options": {
-        "symlink": true
-      }
-    },
-    {
-      "type": "path",
-      "url": "/Users/art/Projects/Framework/packages/ArtsUtilities",
-      "options": {
-        "symlink": true
-      }
-    }
-  ],
-  "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
       "Arts\\FixedReveal\\": "src/php/"

@@ -71,12 +71,20 @@ class Frontend extends BaseManager {
 	}
 
 	/**
-	 * The file's modification time as its version. A `false` version falls back to the WordPress core
-	 * version, so a rebuilt bundle kept its URL and a CDN went on serving the old one for its max-age.
+	 * The package's version as the bundle's version: a released archive carries it in its `composer.json`.
+	 * A checkout linked for development has none there, so the file's modification time stands in and a
+	 * rebuilt bundle still gets a new URL. A `false` version falls back to the WordPress core version,
+	 * and a CDN would go on serving the old bundle for its max-age.
 	 *
 	 * @return string|false
 	 */
 	private function asset_version( string $file ) {
+		$manifest = wp_json_file_decode( dirname( __DIR__, 3 ) . '/composer.json', array( 'associative' => true ) );
+
+		if ( is_array( $manifest ) && isset( $manifest['version'] ) && is_string( $manifest['version'] ) ) {
+			return $manifest['version'];
+		}
+
 		$path  = dirname( __DIR__ ) . '/libraries/arts-fixed-reveal/' . $file;
 		$mtime = file_exists( $path ) ? filemtime( $path ) : false;
 

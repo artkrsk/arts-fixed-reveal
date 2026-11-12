@@ -1,0 +1,4 @@
+# Kept out of a composer archive: the sources the bundle under src/php/libraries is built from.
+# A directory takes the `/**` form, because git matches an attribute against files.
+src/ts/** export-ignore
+src/styles/** export-ignore

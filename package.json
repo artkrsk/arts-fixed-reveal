@@ -1,7 +1,7 @@
 {
   "name": "@arts/fixed-reveal",
   "author": "Artem Semkin",
-  "version": "1.0.1-rc.1",
+  "version": "1.0.1-rc.2",
   "type": "module",
   "license": "GPL-3.0-or-later",
   "description": "Scroll-driven fixed reveal effect for Elementor",
@@ -37,7 +37,7 @@
     "node": ">=23.0.0"
   },
   "peerDependencies": {
-    "@arts/utilities": "^2.7.0"
+    "@arts/utilities": "^2.7.1-rc.1"
   },
   "scripts": {
     "dev": "vite",

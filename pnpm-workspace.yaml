@@ -1,2 +1,5 @@
 allowBuilds:
   '@parcel/watcher': true
+# Our own packages are not strangers' fresh releases.
+minimumReleaseAgeExclude:
+  - '@arts/*'

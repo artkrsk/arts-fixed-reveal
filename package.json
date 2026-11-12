@@ -37,7 +37,7 @@
     "node": ">=23.0.0"
   },
   "peerDependencies": {
-    "@arts/utilities": "^2.7.1-rc.1"
+    "@arts/utilities": "^2.7.1"
   },
   "scripts": {
     "dev": "vite",
@@ -49,7 +49,7 @@
     "deps:update": "npx npm-check-updates -u && pnpm install"
   },
   "devDependencies": {
-    "@arts/utilities": "^2.7.1-rc.1",
+    "@arts/utilities": "^2.7.1",
     "@biomejs/biome": "2.4.13",
     "@types/node": "^25.6.0",
     "sass-embedded": "^1.99.0",

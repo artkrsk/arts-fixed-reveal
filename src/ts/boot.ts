@@ -4,7 +4,9 @@ import '../styles/fixed-reveal.sass'
 
 if (window.artsFixedRevealOptions?.enabled) {
   window.artsFixedReveal?.destroy()
-  const reveal = new ArtsFixedReveal()
+  const reveal = new ArtsFixedReveal({
+    reducedMotion: Boolean(window.artsFixedRevealOptions.reducedMotion ?? true),
+  })
   reveal.init()
   window.artsFixedReveal = reveal
 }

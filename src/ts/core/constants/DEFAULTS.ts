@@ -5,4 +5,5 @@ export const DEFAULTS = {
    *  package stays theme-agnostic and AJAX partial swaps never meet a
    *  foreign wrapper server-side. */
   footerSelector: '[data-elementor-type="footer"]',
+  reducedMotion: true,
 } as const

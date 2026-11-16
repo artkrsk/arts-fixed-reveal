@@ -47,6 +47,14 @@ This approach is immune to CSS transforms or sticky positioning on the footer af
 
 When enabled, `Options.php` hooks into `elementor/element/before_section_end` and replaces `{{WRAPPER}}` with `{{WRAPPER}} #page-wrapper` in the per-document background group control selectors. This redirects the "Page Settings > Body Style > Background" to target the wrapper instead of body — creating the two-layer color architecture without custom controls.
 
+## Reduced Motion
+
+A visitor whose system asks for reduced motion (`prefers-reduced-motion: reduce`) gets the page as with the reveal switched off: the footer in flow below the content, no wrapper scale, no footer fade or offset. A site forces the full effect with the filter shared across Arts packages, `add_filter( 'arts/reduced_motion/enabled', '__return_false' )` (default `true`). The verdict is site-wide and the preference is the visitor's, so cached HTML stays right for everyone: PHP only decides whether the gates exist, and the browser applies them.
+
+- **Script:** `Options.php` prints the verdict as `reducedMotion` in `artsFixedRevealOptions` (`wp_localize_script` turns it into `'1'` or `''`, which `boot.ts` coerces). `init()` returns before the runway when the option is on and the media query matches, so none of the sheet's bindings match and no scale is built. It is read at each `init()`, never subscribed: a changed setting applies from the next AJAX visit (the navigator plugin re-inits) or page load. `IFixedRevealOptions.reducedMotion` (default `true`) is the same switch for an ESM host, whose own footer CSS is its own to gate.
+- **CSS:** the Kit's Fixed mode makes the footer sticky from the first paint, before any script. `Frontend.php` adds an inline `@media (prefers-reduced-motion: reduce)` rule to the `arts-fixed-reveal` style that puts it back to `position: static; z-index: auto`, and only while the verdict is true: the compiled sheet cannot read the filter, so the gate lives where the verdict is known. `:root:root` outranks the Kit selector in any print order. The rule is live with the system setting; the script half follows at the next init.
+- The per-document background retarget (post CSS) does not change per visitor; the footer then sits on the body background, as it does at the end of the full reveal.
+
 ## Build
 
 The WordPress Vite build starts from `src/ts/boot.ts` and mirrors its IIFE/CSS to `src/php/libraries/arts-fixed-reveal/`. `build:library` separately emits passive ESM, declarations and CSS under `dist/esm` and `dist/types`; it never mirrors WordPress assets. Neither build removes the other's output.

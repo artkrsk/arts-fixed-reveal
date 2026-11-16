@@ -1,5 +1,5 @@
 import { debounce, Resize } from '@arts/utilities'
-import { CSS_VARS, DEFAULTS } from './constants'
+import { CSS_VARS, DEFAULTS, REDUCED_MOTION_QUERY } from './constants'
 import type { IFixedRevealOptions } from './interfaces'
 
 interface IViewTimelineCtor {
@@ -53,6 +53,7 @@ function readScale(el: HTMLElement): number {
 export class ArtsFixedReveal {
   private readonly wrapperSelector: string
   private readonly footerSelector: string
+  private readonly reducedMotion: boolean
   private wrapper: HTMLElement | null = null
   private runway: HTMLElement | null = null
   /** True when init() created the runway (vs adopting an existing one) —
@@ -71,10 +72,14 @@ export class ArtsFixedReveal {
   constructor(options: IFixedRevealOptions = {}) {
     this.wrapperSelector = options.wrapperSelector ?? DEFAULTS.wrapperSelector
     this.footerSelector = options.footerSelector ?? DEFAULTS.footerSelector
+    this.reducedMotion = options.reducedMotion ?? DEFAULTS.reducedMotion
   }
 
   init(): void {
     if (this.wrapper) {
+      return
+    }
+    if (this.reducedMotion && window.matchMedia(REDUCED_MOTION_QUERY).matches) {
       return
     }
     const wrapper = document.querySelector<HTMLElement>(this.wrapperSelector)

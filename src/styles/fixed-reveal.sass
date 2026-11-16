@@ -19,6 +19,12 @@
 // a no-op. The wrapper's scale rides a WAAPI ViewTimeline island in
 // ArtsFixedReveal.ts (the wrapper is a DOM SIBLING of the runway — no
 // ancestor timeline lookup, and `timeline-scope` is polyfill-hostile).
+//
+// Reduced motion has no rule here: under it the script builds no runway, so
+// nothing below matches. The Kit's sticky footer (Fixed mode) is gated by a
+// media query `Frontend.php` prints only while the site honours the setting,
+// because this compiled sheet cannot read the `arts/reduced_motion/enabled`
+// filter.
 
 // The gap is typed so getComputedStyle resolves ANY unit (rem/vw/clamp) to
 // a pixel number for the scale endpoint; the other vars are consumed by the

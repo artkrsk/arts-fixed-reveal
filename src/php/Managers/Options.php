@@ -34,7 +34,10 @@ class Options extends BaseManager {
 		// via Elementor conditions, and the keyframes' var() fallbacks make
 		// an absent var a no-op — no runtime switch needed.
 		return array(
-			'enabled' => ! empty( $enabled_raw ),
+			'enabled'       => ! empty( $enabled_raw ),
+			// A filter shared across Arts plugins and themes, so one callback forces full motion everywhere.
+			// The verdict alone decides nothing: the visitor's own setting is read in the browser.
+			'reducedMotion' => (bool) apply_filters( 'arts/reduced_motion/enabled', true ),
 		);
 	}
 

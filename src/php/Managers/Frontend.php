@@ -13,6 +13,15 @@ class Frontend extends BaseManager {
 	/** @var string */
 	private $handle = 'arts-fixed-reveal';
 
+	/**
+	 * Under reduced motion the footer stays in flow, as with the reveal switched off: this undoes the Kit's
+	 * Fixed mode (`position: sticky; bottom: 0; z-index: 0`), which is CSS from the first paint and so cannot
+	 * wait for the script. `:root:root` outranks the Kit's `.elementor-kit-N [data-elementor-type="footer"]`
+	 * wherever an optimizer prints either sheet. `z-index` as well: in a theme whose body is a flex column the
+	 * footer is a flex item, which keeps a stacking context at a static position.
+	 */
+	private const REDUCED_MOTION_STYLE = '@media (prefers-reduced-motion: reduce){:root:root [data-elementor-type="footer"]{position:static;z-index:auto}}';
+
 	public function register(): void {
 		if ( ! $this->managers || ! isset( $this->managers->options ) ) {
 			return;
@@ -39,6 +48,12 @@ class Frontend extends BaseManager {
 			array(),
 			$this->asset_version( 'index.css' )
 		);
+
+		// Printed only while the site honours reduced motion, because the compiled sheet cannot read that
+		// filter; the media query keeps a cached page right for every visitor.
+		if ( Utilities::get_bool_value( $options['reducedMotion'] ?? null, true ) ) {
+			wp_add_inline_style( $this->handle, self::REDUCED_MOTION_STYLE );
+		}
 
 		// The style goes in the head, ahead of the footer check the script waits for: printed from
 		// wp_footer it lands after the first style pass, and its `@property` registration would then

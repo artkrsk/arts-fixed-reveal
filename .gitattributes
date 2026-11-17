@@ -2,3 +2,4 @@
 # A directory takes the `/**` form, because git matches an attribute against files.
 src/ts/** export-ignore
 src/styles/** export-ignore
+orca.yaml export-ignore

@@ -18,7 +18,8 @@
 // control simply never emits its var and the fallback makes the keyframe
 // a no-op. The wrapper's scale rides a WAAPI ViewTimeline island in
 // ArtsFixedReveal.ts (the wrapper is a DOM SIBLING of the runway — no
-// ancestor timeline lookup, and `timeline-scope` is polyfill-hostile).
+// ancestor timeline lookup). No polyfill is loaded: a browser without native
+// scroll timelines shows the footer at that natural rest state.
 //
 // Reduced motion has no rule here: under it the script builds no runway, so
 // nothing below matches. The Kit's sticky footer (Fixed mode) is gated by a

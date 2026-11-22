@@ -39,10 +39,10 @@ function readScale(el: HTMLElement): number {
  *    never meet a foreign wrapper server-side, and the standard
  *    destroy() → init() re-init cycle re-wraps whatever footer exists;
  *  - the wrapper's scale-down: the wrapper is a DOM SIBLING of the runway,
- *    so no ancestor timeline lookup exists and `timeline-scope` is not
- *    polyfill-viable — a WAAPI animation on a JS-built `ViewTimeline`
- *    crosses the sibling boundary instead (compositor-threaded in native
- *    browsers; the polyfill's JS constructors are its most reliable path);
+ *    so no ancestor timeline lookup exists — a WAAPI animation on a
+ *    JS-built `ViewTimeline` crosses the sibling boundary instead
+ *    (compositor-threaded). A browser without native scroll timelines
+ *    gets no animation: no polyfill is loaded;
  *  - the scale endpoint `(vw − 2·gap) / vw`, recomputed on resize only;
  *  - the taller-than-viewport class that neutralizes the CSS translateY
  *    settle-in (parity with the v1 guard).
@@ -63,7 +63,6 @@ export class ArtsFixedReveal {
   /** The scale endpoint `animation` was built for. */
   private animatedScale = 1
   private resizeObserver: Resize | null = null
-  private waitHandle: number | null = null
   private lifetime: AbortController | null = null
   /** Set by freezeScale() — a caller owns the wrapper's scale from here
    *  until the next init(), so no rebuild may re-arm the animation. */
@@ -109,19 +108,16 @@ export class ArtsFixedReveal {
         signal: this.lifetime.signal,
       })
     }
-    this.whenViewTimelineAvailable(() => {
-      this.buildAnimation()
-    })
+    // A browser without native scroll timelines builds no animation: the
+    // footer's own CSS bindings rest at their natural state there, and the
+    // wrapper stays static.
+    this.buildAnimation()
     this.setupResizeObserver()
   }
 
   destroy(): void {
     this.lifetime?.abort()
     this.lifetime = null
-    if (this.waitHandle !== null) {
-      window.clearInterval(this.waitHandle)
-      this.waitHandle = null
-    }
     if (this.resizeObserver) {
       this.resizeObserver.destroy()
       this.resizeObserver = null
@@ -246,34 +242,6 @@ export class ArtsFixedReveal {
     }
 
     this.ownsRunway = false
-  }
-
-  /** The polyfill loads via a guarded async append — in non-native
-   *  browsers `ViewTimeline` may not exist yet when this script runs.
-   *  Native browsers resolve synchronously. */
-  private whenViewTimelineAvailable(callback: () => void): void {
-    if (this.getViewTimelineCtor()) {
-      callback()
-      return
-    }
-
-    const startedAt = Date.now()
-    this.waitHandle = window.setInterval(() => {
-      if (this.getViewTimelineCtor()) {
-        if (this.waitHandle !== null) {
-          window.clearInterval(this.waitHandle)
-          this.waitHandle = null
-        }
-        callback()
-      } else if (Date.now() - startedAt > 5000) {
-        /** No native support and no polyfill arrived — the CSS
-         *  effects are equally inert here; leave the wrapper static. */
-        if (this.waitHandle !== null) {
-          window.clearInterval(this.waitHandle)
-          this.waitHandle = null
-        }
-      }
-    }, 100)
   }
 
   private getViewTimelineCtor(): IViewTimelineCtor | undefined {

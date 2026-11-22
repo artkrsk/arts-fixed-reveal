@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b60f189b728f2b4f2054d02090fb55fd",
+    "content-hash": "30410b751147e1e6d6dd9330c99ccf56",
     "packages": [
         {
             "name": "arts/base",
@@ -110,56 +110,6 @@
                 "source": "https://github.com/artkrsk/arts-elementor-extension/tree/v1.1.0"
             },
             "time": "2026-11-11T15:21:33+00:00"
-        },
-        {
-            "name": "arts/scroll-timeline-polyfill",
-            "version": "v1.2.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/artkrsk/arts-scroll-timeline-polyfill.git",
-                "reference": "09f675a6e6e85a26451288d19883e1a2d0abbe61"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/artkrsk/arts-scroll-timeline-polyfill/zipball/09f675a6e6e85a26451288d19883e1a2d0abbe61",
-                "reference": "09f675a6e6e85a26451288d19883e1a2d0abbe61",
-                "shasum": ""
-            },
-            "require": {
-                "arts/base": "^1.1",
-                "php": ">=8.0"
-            },
-            "require-dev": {
-                "captainhook/captainhook": "^5.27",
-                "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-                "ergebnis/composer-normalize": "^2.48",
-                "phpstan/phpstan": "^2.0",
-                "squizlabs/php_codesniffer": "^3.13.4",
-                "szepeviktor/phpstan-wordpress": "^2.0",
-                "wp-coding-standards/wpcs": "^3.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Arts\\ScrollTimelinePolyfill\\": "src/php/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Artem Semkin",
-                    "email": "me@artemsemkin.com"
-                }
-            ],
-            "description": "Registers the flackr scroll-timeline polyfill as a self-gating WordPress script for browsers without native CSS scroll-driven animations, plus an opt-out API for stylesheets the polyfill must not transpile.",
-            "support": {
-                "issues": "https://github.com/artkrsk/arts-scroll-timeline-polyfill/issues",
-                "source": "https://github.com/artkrsk/arts-scroll-timeline-polyfill/tree/v1.2.2"
-            },
-            "time": "2026-11-12T04:05:17+00:00"
         },
         {
             "name": "arts/utilities",

@@ -47,6 +47,10 @@ This approach is immune to CSS transforms or sticky positioning on the footer af
 
 When enabled, `Options.php` hooks into `elementor/element/before_section_end` and replaces `{{WRAPPER}}` with `{{WRAPPER}} #page-wrapper` in the per-document background group control selectors. This redirects the "Page Settings > Body Style > Background" to target the wrapper instead of body — creating the two-layer color architecture without custom controls.
 
+## Browser Support
+
+Native scroll timelines only (Chrome and Edge, Safari 26+, Firefox 159+). Since 2.0.0 the package loads no scroll-timeline polyfill and no longer registers its handle. In a browser without timelines the script builds no wrapper animation, and the footer's own bindings (longhands) rest at their natural state, so the footer simply sits in place.
+
 ## Reduced Motion
 
 A visitor whose system asks for reduced motion (`prefers-reduced-motion: reduce`) gets the page as with the reveal switched off: the footer in flow below the content, no wrapper scale, no footer fade or offset. A site forces the full effect with the filter shared across Arts packages, `add_filter( 'arts/reduced_motion/enabled', '__return_false' )` (default `true`). The verdict is site-wide and the preference is the visitor's, so cached HTML stays right for everyone: PHP only decides whether the gates exist, and the browser applies them.

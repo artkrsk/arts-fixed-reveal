@@ -32,7 +32,7 @@ class Frontend extends BaseManager {
 		wp_register_script(
 			$this->handle,
 			esc_url( untrailingslashit( $this->plugin_dir_url ) . '/libraries/arts-fixed-reveal/index.iife.js' ),
-			array( 'scroll-timeline-polyfill' ),
+			array(),
 			$this->asset_version( 'index.iife.js' ),
 			array(
 				'in_footer' => true,

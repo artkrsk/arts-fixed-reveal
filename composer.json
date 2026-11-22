@@ -13,7 +13,6 @@
     "php": ">=8.0",
     "arts/base": "^1.1",
     "arts/elementor-extension": "^1.1",
-    "arts/scroll-timeline-polyfill": "^1.2.2",
     "arts/utilities": "^2.7"
   },
   "autoload": {

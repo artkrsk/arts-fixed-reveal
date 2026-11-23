@@ -18,7 +18,6 @@ Thumbs.db
 # Dependencies
 /node_modules
 /vendor
-pnpm-lock.yaml
 
 # TypeScript
 *.tsbuildinfo

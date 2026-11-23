@@ -153,7 +153,12 @@ class FixedReveal extends BaseTab {
 			)
 		);
 
-		/** Emit sticky CSS only when "fixed" mode is selected */
+		/**
+		 * Fixed mode pins the footer in two stages. The sticky holds it from the first paint until the script
+		 * wraps it in the runway, a parent exactly its size that leaves a sticky no room to move. From then on
+		 * the full-height offset holds it on the runway's timeline: over `entry` the footer rises by its own
+		 * height, and -100% → 0 cancels that. A footer taller than the viewport drops the offset, as in Custom.
+		 */
 		$this->add_control(
 			'fixed_reveal_translate_y_fixed_styles',
 			array(
@@ -161,6 +166,7 @@ class FixedReveal extends BaseTab {
 				'default'   => 'fixed',
 				'selectors' => array(
 					'{{WRAPPER}} [data-elementor-type="footer"]' => 'position: sticky; bottom: 0; z-index: 0;',
+					'{{WRAPPER}}' => '--arts-fixed-reveal-translate-y-from: -100%;',
 				),
 				'condition' => array_merge(
 					self::CONDITION_FIXED_REVEAL_ENABLED,

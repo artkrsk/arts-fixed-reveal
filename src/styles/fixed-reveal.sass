@@ -50,8 +50,9 @@
 
 	// Parity with the v1 guard: skip the translateY settle-in when the
 	// footer is taller than the viewport (a small offset reads badly at
-	// that size). The island toggles the class from its resize path —
-	// measurement lives where measurement already exists.
+	// that size). The same var carries Fixed mode's -100% pin, so a tall
+	// footer is not pinned either. The island toggles the class from its
+	// resize path — measurement lives where measurement already exists.
 	&.is-taller-than-viewport > [data-elementor-type="footer"]
 		--arts-fixed-reveal-translate-y-from: 0px
 

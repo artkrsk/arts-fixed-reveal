@@ -40,7 +40,10 @@
 .arts-fixed-reveal__runway
 	view-timeline: --arts-fixed-reveal block
 
-	> [data-elementor-type="footer"]
+	// The runway's only child is the footer, whatever `footerSelector` found:
+	// `*` matches it, and Elementor's attribute sits in the `:is()` only to
+	// keep the specificity (0,2,0) above the Kit's own footer rule.
+	> :is([data-elementor-type="footer"], *)
 		animation-name: arts-fixed-reveal-opacity, arts-fixed-reveal-translate-y
 		animation-duration: auto, auto
 		animation-timing-function: linear, linear
@@ -53,7 +56,7 @@
 	// that size). The same var carries Fixed mode's -100% pin, so a tall
 	// footer is not pinned either. The island toggles the class from its
 	// resize path — measurement lives where measurement already exists.
-	&.is-taller-than-viewport > [data-elementor-type="footer"]
+	&.is-taller-than-viewport > :is([data-elementor-type="footer"], *)
 		--arts-fixed-reveal-translate-y-from: 0px
 
 // No floor (v1's 0.01 kept a GSAP inline tween from detaching at 0): a
